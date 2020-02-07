@@ -25,6 +25,9 @@ import CookieConsent from 'react-cookie-consent';
 import myFirstMicroscriptionQR from './MyFirstQRCode.png';
 import StripeCheckout from 'react-stripe-checkout';
 
+
+import ReactGA from 'react-ga';
+
 // ICONS
 import { MonetizationOnIcon, Email, Person, Lock, Visibility, VisibilityOff, AccountCircle, CropFree, Devices, ArrowForward, LineStyle, Block } from '@material-ui/icons';
 
@@ -350,18 +353,18 @@ class App extends React.Component {
     console.log('token id: ' + JSON.stringify(token));
 
     console.log('request url: ' + `https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/stripe/webchargepaymentintent?pi=` + this.state.currentpi + `&ct=` + token.id
-    + `&userid=` + this.state.userId + `&token=` + this.state.authToken)
+      + `&userid=` + this.state.userId + `&token=` + this.state.authToken)
 
     axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/stripe/webchargepaymentintent?pi=` + this.state.currentpi + `&ct=` + token.id
-        + `&userid=` + this.state.userId + `&token=` + this.state.authToken, {})
-            .then(res => {
-                console.log(res);
-                console.log(res.data);
-                if(res.data == "success") {
-                  this.setState({ appCurrentScreen: 'MyAccount' })
-                  this.getUserInformation(this.state.userId);
-                }
-            })
+      + `&userid=` + this.state.userId + `&token=` + this.state.authToken, {})
+      .then(res => {
+        console.log(res);
+        console.log(res.data);
+        if (res.data == "success") {
+          this.setState({ appCurrentScreen: 'MyAccount' })
+          this.getUserInformation(this.state.userId);
+        }
+      })
   }
 
 
@@ -371,7 +374,15 @@ class App extends React.Component {
 
   render() {
 
-
+    // GOOGLE ANALYTICS
+    const trackingId = "UA-157985337-1"; // Replace with your Google Analytics tracking ID
+    ReactGA.initialize(trackingId);
+    ReactGA.pageview('App.js' + ' ' + this.state.userId);
+    ReactGA.set({
+      userId: this.state.userId,
+      // any data that is relevant to the user session
+      // that you would like to track with google analytics
+    })
 
     const userId = this.state.userId
     const userData = this.state.userData
@@ -979,8 +990,20 @@ class App extends React.Component {
 
                         </div>
 
-                        :
-                        (<div></div>)
+                        : this.state.appCurrentScreen == 'Contact' ?
+                          // IF CURRENTSCREEN == 'Register'
+                          <div className="largePadding" style={{ fontFamily: 'Avenir' }}>
+                            <h1>Contact Us</h1>
+
+                            <p style={{ fontSize: '20px' }}>We'd love to hear from you. Feel free to reach out to us if you have questions, conerns, or bugs.</p>
+
+                            Use the button at the bottom right of the screen to message us.
+                          <br /><br />
+                            Or email us at <a href="mailto:contact@microscriptions.com" target="_blank">contact@microscriptions.com</a>.
+                        </div>
+
+                          :
+                          (<div></div>)
 
         }
       </div>
