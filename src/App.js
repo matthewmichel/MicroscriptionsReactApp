@@ -24,6 +24,7 @@ import { withCookies, Cookies } from 'react-cookie';
 import CookieConsent from 'react-cookie-consent';
 import myFirstMicroscriptionQR from './MyFirstQRCode.png';
 import StripeCheckout from 'react-stripe-checkout';
+import CircularSlider from '@fseehawer/react-circular-slider';
 
 
 import ReactGA from 'react-ga';
@@ -61,7 +62,7 @@ class App extends React.Component {
       showUserDetailedMicroscriptionModal: false,
       showDeveloperDetailedMicroscriptionModal: false,
       showLogInPage: false,
-      appCurrentScreen: 'Home',
+      appCurrentScreen: 'Random',
       isDeveloper: false,
       developerRevenue: -7.77,
       weeklyDeveloperRevenue: -7.77,
@@ -109,6 +110,12 @@ class App extends React.Component {
           if (this.state.showNewMicroscriptionDialogAfterLogin) {
             this.setState({ showNewUserMicroscriptionDialog: true })
           }
+
+
+          ReactGA.event({
+            category: "Successful Sign In",
+            action: "A user successfully signed in.",
+          });
 
         }
       })
@@ -158,6 +165,8 @@ class App extends React.Component {
   checkUserCredentials() {
 
     let currentComponent = this
+
+
 
     axios.get(`https://uc5za0d1xe.execute-api.us-east-2.amazonaws.com/100/account/checkcredentials?un=` + document.getElementById('usernameTxt').value + `&px=` + encodeURIComponent(document.getElementById('passwordTxt').value))
       .then((res) => {
@@ -320,18 +329,25 @@ class App extends React.Component {
         .then((res) => {
           if (res.data == "702") {
             console.log("702");
-            this.setState({ showExpiredSessionSnackbar: true });
+            this.setState({ showExpiredSessionSnackbar: true, appCurrentScreen: 'Home' });
             this.handleMcrscrpurChange(null);
             this.handleMcrscrpaxChange(null);
           } else if (res.data == "704") {
             console.log("704");
             this.handleMcrscrpurChange(null);
             this.handleMcrscrpaxChange(null);
+            this.setState({ appCurrentScreen: 'Home' });
           }
           else if (res.data != null) {
             this.setState({ userData: res.data })
             this.setState({ userId: res.data.userId, loggedIn: true, authToken: cookies.get('mcrscrpax') })
             this.getUserMicroscriptionList(this.state.userId);
+
+            ReactGA.event({
+              category: "Successful Sign In",
+              action: "A user successfully signed in with stored cookies."
+            });
+
             if (this.state.userData.isDeveloper == true) {
               this.setState({ isDeveloper: true })
               this.getDeveloperMicroscriptionList(this.state.userId)
@@ -346,6 +362,8 @@ class App extends React.Component {
 
           }
         })
+    } else {
+      this.setState({ appCurrentScreen: 'Home' });
     }
   }
 
@@ -364,6 +382,12 @@ class App extends React.Component {
           this.setState({ appCurrentScreen: 'MyAccount' })
           this.getUserInformation(this.state.userId);
         }
+
+        ReactGA.event({
+          category: "Payment Successful",
+          action: "Credit added to user account.",
+          label: "$" + this.state.sliderPaymentAmount + " has been added to a user account. PI: " + this.currentpi,
+        });
       })
   }
 
@@ -377,7 +401,7 @@ class App extends React.Component {
     // GOOGLE ANALYTICS
     const trackingId = "UA-157985337-1"; // Replace with your Google Analytics tracking ID
     ReactGA.initialize(trackingId);
-    ReactGA.pageview('App.js' + ' ' + this.state.userId);
+    ReactGA.pageview(this.state.userId == null ? "guest" : this.state.userId);
     ReactGA.set({
       userId: this.state.userId,
       // any data that is relevant to the user session
@@ -498,7 +522,7 @@ class App extends React.Component {
                   </Grid>
                 </Grid>
                 <Grid item style={{ textAlign: 'left', paddingLeft: '1em' }}>
-                  <Grid container direction="column">
+                  <Grid container direction="column" justify="center">
                     <Grid item style={{ textAlign: "center" }}>
                       <h2 style={{ fontFamily: 'Avenir' }}>Your Microscriptions</h2>
                     </Grid>
@@ -507,8 +531,13 @@ class App extends React.Component {
                       <p style={{ fontSize: '20px' }}>1. Scan QR Code or Click Link</p>
                       <Grid container direction="row" justify="center" alignItems="center">
                         <img src={myFirstMicroscriptionQR} />
-                        <a href="/microscription?s=310db2e3-1d8f-4707-b196-94fcdeadc3fa" target="_self">
-                          <Button onClick={() => { }} variant="contained"
+                        <a href="/microscription?s=310db2e3-1d8f-4707-b196-94fcdeadc3fa" target="_self" style={{ textDecoration: 'none' }}>
+                          <Button onClick={() => { 
+                            ReactGA.event({
+                              category: "Initial Microscription",
+                              action: "A user has subscribed to the first test microscription.",
+                            });
+                           }} variant="contained"
                             style={{
                               background: "linear-gradient(90deg, #E15392, #349CDE)",
                               padding: '15px',
@@ -520,9 +549,9 @@ class App extends React.Component {
                     </div> : <div></div>}
                     {console.log("value 0 " + this.state.userMicroscriptionList[0])}
                     {this.state.userMicroscriptionList != "704" ? this.state.userMicroscriptionList.map((microscription, index) => (
-                      <div>
+                      <div style={{ textAlign: 'center' }}>
                         <Grid item xs={9} style={{ fontFamily: 'Avenir' }}>
-                          <Grid container direction="row">
+                          <Grid container direction="row" justify="center" alignItems="center">
                             <Grid item style={{ borderRightStyle: 'solid', borderRightWidth: '1px' }} xs={6}>
                               <Grid container direction="column" style={{ padding: '1em' }} justify="space-evenly">
                                 <Grid item>
@@ -535,7 +564,7 @@ class App extends React.Component {
                             </Grid>
                             <Grid item style={{ borderRightStyle: 'solid', borderRightWidth: '1px', textAlign: "center", alignContent: "center" }} xs={4}>
                               <Grid container direction="column" style={{ padding: '1em' }}>
-                                <h3 style={{ margin: '1px' }}>${microscription.microscriptionCost}</h3>
+                                <h3 style={{ margin: '1px' }}>${((Number(microscription.microscriptionCost) + 0.01).toFixed(2))}</h3>
                                 due on<br />
 
                                 <p style={{ margin: '1px', fontSize: '20px', width: '100%' }}>{microscription.nextBillingDate}</p>
@@ -611,6 +640,11 @@ class App extends React.Component {
           : this.state.appCurrentScreen == 'Login' ?
             // IF CURRENTSCREEN == Login
             <div className="HomePageBackground">
+              <Paper style={{ width: '100%', padding: '2em', backgroundColor: 'rgb(255,255,255,85%)' }}>
+                <Grid container direction="column" justify="center">
+                  
+                </Grid>
+              </Paper>
               <Grid container alignItems="center" justify="space-evenly" style={{ paddingTop: "5em", paddingBottom: '5em' }} direction="column" >
                 <Grid item xs={6}>
                   <Paper style={{ width: '100%', padding: '2em', backgroundColor: 'rgb(255,255,255,85%)' }}>
@@ -812,7 +846,7 @@ class App extends React.Component {
 
                   : this.state.appCurrentScreen == 'AddCredit' ?
                     // IF CURRENTSCREEN == AddCredit
-                    <div className="largePadding">
+                    <div style={{ width: '80%', marginLeft: '10%' }}>
                       <Button onClick={() => {
                         this.setState({ appCurrentScreen: 'MyAccount' });
                       }}
@@ -822,23 +856,29 @@ class App extends React.Component {
                       <h1 className="BottomPadding"><p className="BasicAvenir">Add Credit</p></h1>
                       <p className="BasicAvenir">Step 1. Choose Amount.</p>
 
-                      <Slider
-                        defaultValue={this.state.sliderPaymentAmount}
-                        valueLabelDisplay="auto"
-                        step={1}
-                        marks
-                        min={1}
-                        max={20}
-                        className="PaymentSliderStyle"
-                        onChange={(e, val) => this.setState({ sliderPaymentAmount: val })}
-                        valueLabelDisplay="on"
-                        track="normal" />
+                      <br /><br />
 
+                        
+                        <CircularSlider
+                            onChange={value => { this.setState({ sliderPaymentAmount: value }); }}
+                            label="Amount"
+                            progressColorFrom="#E15392"
+                            progressColorTo="#349CDE"
+                            prependToValue="$"
+                            min={1}
+                            max={25}
+                            className="PaymentSliderStyle"
+                            />
 
+                      <br /><br /><br /><br />
 
                       <Button onClick={() => {
                         this.setState({ appCurrentScreen: 'AddPayment' });
                         this.createPaymentIntent();
+                        ReactGA.event({
+                          category: "Payment Amount Chosen",
+                          action: "User has chosen a payment amount and gone to add payment page.",
+                        });
                       }}
                         style={{
                           background: "linear-gradient(90deg, #E15392, #349CDE)",
@@ -864,7 +904,17 @@ class App extends React.Component {
 
                         <br /><br />
 
-                        <StripeCheckout token={this.onToken} stripeKey="pk_test_XUvbDOvpZQJmDwFJl5ZzvSeb00rzEbdSV0" />
+                        <StripeCheckout 
+                        token={this.onToken} 
+                        stripeKey="pk_test_XUvbDOvpZQJmDwFJl5ZzvSeb00rzEbdSV0" 
+                        amount={this.state.sliderPaymentAmount*100}
+                        name="Microscriptions Inc."
+                        description="Account Credit"
+                        currency="USD"
+                        email="payments@microscriptions.com"
+                        panelLabel="Add Credit"
+                        />
+                        <p style={{ fontFamilt: 'Avenir' }}>Powered by Stripe</p>
 
                       </div>
 
@@ -992,7 +1042,7 @@ class App extends React.Component {
 
                         : this.state.appCurrentScreen == 'Contact' ?
                           // IF CURRENTSCREEN == 'Register'
-                          <div className="largePadding" style={{ fontFamily: 'Avenir' }}>
+                          <div style={{ fontFamily: 'Avenir', width: '80%', marginLeft: '10%' }}>
                             <h1>Contact Us</h1>
 
                             <p style={{ fontSize: '20px' }}>We'd love to hear from you. Feel free to reach out to us if you have questions, conerns, or bugs.</p>

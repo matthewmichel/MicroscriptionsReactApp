@@ -39,12 +39,12 @@ class AddNewMicroscriptionDialog extends React.Component {
             newMicroscriptionConfirmed: false,
             primaryColor: '#E15392',
             secondaryColor: '#349CDE',
-            primaryColorRed: null,
-            primaryColorGreen: null,
-            primaryColorBlue: null,
-            secondaryColorRed: null,
-            secondaryColorGreen: null,
-            secondaryColorBlue: null,
+            primaryColorRed: 225,
+            primaryColorGreen: 83,
+            primaryColorBlue: 146,
+            secondaryColorRed: 52,
+            secondaryColorGreen: 156,
+            secondaryColorBlue: 222,
         };
     }
 
@@ -106,9 +106,8 @@ class AddNewMicroscriptionDialog extends React.Component {
             <Dialog
                 open={this.state.show}
                 onClose={this.handleClose}
-                maxWidth={"sm"}
-                fullWidth={"sm"}
-                className="userMicroscriptionStyle"
+                maxWidth={"lg"}
+                fullWidth={"xl"}
                 PaperProps={{
                     style: {
                         background: "white",
@@ -124,36 +123,44 @@ class AddNewMicroscriptionDialog extends React.Component {
                     id="microscriptionName"
                     label="Microscription Name"
                     type="text"
-                    style={
-                        {padding: '15px'}
-                    }
+                    style={{
+                        padding: '15px',
+                        width: '75%'
+                    }}
+                    fullWidth={true}
                 />
                 <TextField
                     margin="dense"
                     id="microscriptionDescription"
                     label="Microscription Description"
                     type="text"
-                    style={
-                        {padding: '15px'}
-                    }
+                    style={{
+                        padding: '15px',
+                        width: '75%'
+                    }}
+                    fullWidth={true}
                 />
                 <TextField
                     margin="dense"
                     id="microscriptionCost"
                     label="Microscription Cost (i.e. 0.01)"
                     type="number"
-                    style={
-                        {padding: '15px'}
-                    }
+                    style={{
+                        padding: '15px',
+                        width: '75%'
+                    }}
+                    fullWidth={true}
                 />
                 <TextField
                     margin="dense"
                     id="microscriptionBillingCycle"
                     label="Microscription Billing Cycle (In Days)"
                     type="number"
-                    style={
-                        {padding: '15px'}
-                    }
+                    style={{
+                        padding: '15px',
+                        width: '75%'
+                    }}
+                    fullWidth={true}
                 />
 
                 <br />

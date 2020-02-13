@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@fseehawer/react-circular-slider": "^2.2.0",
     "@material-ui/core": "^4.8.1",
     "@material-ui/icons": "^4.5.1",
     "@material-ui/lab": "^4.0.0-alpha.41",
@@ -14,6 +15,7 @@
     "query-string": "^6.9.0",
     "rc-menu": "^8.0.0-alpha.7",
     "react": "^16.12.0",
+    "react-circle-slider": "^1.6.2",
     "react-color": "^2.17.3",
     "react-cookie": "^4.0.3",
     "react-cookie-consent": "^3.0.0",

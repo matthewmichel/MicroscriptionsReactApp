@@ -96,52 +96,32 @@ class NewUserMicroscriptionDialog extends Component {
                     onClose={this.handleDeleteConfirmationClose}
                 >
                     <div style={modalStyle} className="ModalUnsubscribeConfirmationStyle">
-                        <h3>Subscribe to {this.state.microscription.microscriptionName}</h3>
+                        <h3>Subscribe to '{this.state.microscription.microscriptionName}'</h3>
                         <Container>
-                            <Row>
-                                <Col sm={4}>
-                                    ${this.state.microscription.microscriptionCost}
+                            <Row sm={12}>
+                                <Col sm={8} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
+                                    <em>{this.state.microscription.microscriptionName}</em>
                                 </Col>
-                                <Col sm={4}>
-                                    '{this.state.microscription.microscriptionName}' cost
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col sm={4}>
-                                    $0.01
-                                </Col>
-                                <Col sm={4}>
-                                    Microscription fee
+                                <Col sm={4} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
+                                    ${(Number(this.state.microscription.microscriptionCost) + 0.01)}
                                 </Col>
                             </Row>
-                            <Row>
-                                Total: {this.state.microscription.microscriptionCost}
+                            <Row >
+                                <Col sm={8} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
+                                    Total
+                                </Col>
+                                <Col sm={4} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
+                                    <strong>${(Number(this.state.microscription.microscriptionCost) + 0.01)}</strong>
+                                </Col>
                             </Row>
-                            <Row>
-                                Billed every {this.state.microscription}
+                            <Row >
+                                <Col sm={12} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
+                                    Charged every <strong>{this.state.microscription.billingCycle} days</strong>
+                                </Col>
                             </Row>
 
                         </Container>
-                        <Grid container direction="column" style={{ padding: '5px', textAlign: "center" }}>
-                            <Grid container direction="row" >
-                                <Grid item style={{ borderStyle: "solid", borderWidth: '1px', padding: '5px' }}>
-                                    ${this.state.microscription.microscriptionCost}
-                                </Grid>
-                                <Grid item style={{ borderStyle: "solid", borderWidth: '1px', padding: '5px', textAlign: "right" }}>
-                                    '{this.state.microscription.microscriptionName}' cost
-                                </Grid>
-                            </Grid>
-                            <Grid container direction="row">
-                                <Grid item style={{ borderStyle: "solid", borderWidth: '1px', padding: '5px' }}>
-                                    $0.01
-                                </Grid>
-                                <Grid item style={{ borderStyle: "solid", borderWidth: '1px', padding: '5px' }}>
-                                    Microscription fee
-                                </Grid>
-                            </Grid>
-                            Total: ${Number(this.state.microscriptionCost).toString()}<br />
-                            Billed every {this.state.microscription.billingCycle} days
-                        </Grid>
+
                         <p>- OR -</p>
                         <p><a href={"mcrsb://beta?productId=" + this.state.microscription.microscriptionId}>Open in the app</a></p>
                         <DialogActions>
@@ -151,11 +131,14 @@ class NewUserMicroscriptionDialog extends Component {
                                     padding: '15px',
                                     color: 'white'
                                 }} onClick={this.handleConfirmSubscribe}>Subscribe</Button>
-                            <Button variant="contained"
-                                style={{
-                                    padding: '15px',
-                                    color: 'black'
-                                }} onClick={this.handleClose}>Cancel</Button>
+                            <a href="/" target="_self" style={{ textDecoration: 'none' }}>
+                                <Button variant="contained"
+                                    style={{
+                                        padding: '15px',
+                                        color: 'black'
+                                    }} onClick={this.handleClose}>Cancel</Button>
+                            </a>
+
                         </DialogActions>
 
                     </div>
