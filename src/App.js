@@ -532,12 +532,12 @@ class App extends React.Component {
                       <Grid container direction="row" justify="center" alignItems="center">
                         <img src={myFirstMicroscriptionQR} />
                         <a href="/microscription?s=310db2e3-1d8f-4707-b196-94fcdeadc3fa" target="_self" style={{ textDecoration: 'none' }}>
-                          <Button onClick={() => { 
+                          <Button onClick={() => {
                             ReactGA.event({
                               category: "Initial Microscription",
                               action: "A user has subscribed to the first test microscription.",
                             });
-                           }} variant="contained"
+                          }} variant="contained"
                             style={{
                               background: "linear-gradient(90deg, #E15392, #349CDE)",
                               padding: '15px',
@@ -640,18 +640,19 @@ class App extends React.Component {
           : this.state.appCurrentScreen == 'Login' ?
             // IF CURRENTSCREEN == Login
             <div className="HomePageBackground">
-              <Paper style={{ width: '100%', padding: '2em', backgroundColor: 'rgb(255,255,255,85%)' }}>
+              <Paper style={{ width: '75%', padding: '2em', backgroundColor: 'rgb(255,255,255,85%)', margin: 'auto' }}>
                 <Grid container direction="column" justify="center">
-                  
-                </Grid>
-              </Paper>
-              <Grid container alignItems="center" justify="space-evenly" style={{ paddingTop: "5em", paddingBottom: '5em' }} direction="column" >
-                <Grid item xs={6}>
-                  <Paper style={{ width: '100%', padding: '2em', backgroundColor: 'rgb(255,255,255,85%)' }}>
+                  <Grid item>
                     <img src={normalLogo} className="App-Logo" alt="logo" style={{ paddingBottom: '2em' }} />
+                  </Grid>
+                  <Grid item>
                     <h3 style={{ padding: '1em' }}>{this.state.loggedIn ? '' : 'Log In'}</h3>
+                  </Grid>
+                  <Grid item>
                     {this.state.userId == null ? (<TextField className="inputTxtField" id="usernameTxt" label="Username" variant="outlined" />) : (<div></div>)} <br /><br />
                     {this.state.userId == null ? (<TextField className="inputTxtField" id="passwordTxt" label="Password" variant="outlined" type="password" />) : (<div></div>)} <br /><br />
+                  </Grid>
+                  <Grid item>
                     <Button variant="contained" color="primary" autofocus onClick={() => {
                       console.log(this.state.loggedIn)
                       if (this.state.loggedIn == true) {
@@ -662,15 +663,15 @@ class App extends React.Component {
                     }}>
                       {this.state.userData == null ? ('Log In') : ('Log Out')}
                     </Button>
-                  </Paper>
+                  </Grid>
                 </Grid>
-              </Grid>
+              </Paper>
             </div>
 
             : this.state.appCurrentScreen == 'Home' ?
               // IF CURRENTSCREEN == Home
               <div className="HomePageBackground">
-                <Grid container style={{ alignItems: 'center' }} justify="center">
+                <Grid container style={{ alignItems: 'center', margin: 'auto' }} justify="center">
                   <Grid item>
                     <img src={logo} className="App-Logo" alt="logo" />
                     <h2 className="TaglineStyle">
@@ -858,17 +859,17 @@ class App extends React.Component {
 
                       <br /><br />
 
-                        
-                        <CircularSlider
-                            onChange={value => { this.setState({ sliderPaymentAmount: value }); }}
-                            label="Amount"
-                            progressColorFrom="#E15392"
-                            progressColorTo="#349CDE"
-                            prependToValue="$"
-                            min={1}
-                            max={25}
-                            className="PaymentSliderStyle"
-                            />
+
+                      <CircularSlider
+                        onChange={value => { this.setState({ sliderPaymentAmount: value }); }}
+                        label="Amount"
+                        progressColorFrom="#E15392"
+                        progressColorTo="#349CDE"
+                        prependToValue="$"
+                        min={1}
+                        max={25}
+                        className="PaymentSliderStyle"
+                      />
 
                       <br /><br /><br /><br />
 
@@ -904,15 +905,15 @@ class App extends React.Component {
 
                         <br /><br />
 
-                        <StripeCheckout 
-                        token={this.onToken} 
-                        stripeKey="pk_test_XUvbDOvpZQJmDwFJl5ZzvSeb00rzEbdSV0" 
-                        amount={this.state.sliderPaymentAmount*100}
-                        name="Microscriptions Inc."
-                        description="Account Credit"
-                        currency="USD"
-                        email="payments@microscriptions.com"
-                        panelLabel="Add Credit"
+                        <StripeCheckout
+                          token={this.onToken}
+                          stripeKey="pk_test_XUvbDOvpZQJmDwFJl5ZzvSeb00rzEbdSV0"
+                          amount={this.state.sliderPaymentAmount * 100}
+                          name="Microscriptions Inc."
+                          description="Account Credit"
+                          currency="USD"
+                          email="payments@microscriptions.com"
+                          panelLabel="Add Credit"
                         />
                         <p style={{ fontFamilt: 'Avenir' }}>Powered by Stripe</p>
 
