@@ -120,18 +120,18 @@ class DetailedUserMicroscriptionDialog extends React.Component {
                 }
             })
     }
-    
+
     handleConfirmEdit = () => {
 
         // POST REQUEST TO CREATE NEW MICROSCRIPTION
         console.log("edit confirmed");
-        axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/microscription/updatemicroscription?pcr=` + this.state.primaryColorRed + `&pcg=` + this.state.primaryColorGreen  + `&pcb=` + this.state.primaryColorBlue
-        + `&scr=` + this.state.secondaryColorRed  + `&scg=` + this.state.secondaryColorGreen + `&scb=` + this.state.secondaryColorBlue 
-        + `&mcrscrpcst=` + document.getElementById('microscriptionCost').value
-        + `&mcrscrpnme=` + document.getElementById('microscriptionName').value
-        + `&mcrscrpdesc=` + document.getElementById('microscriptionDescription').value
-        + `&mcrscrpid=` + this.props.microscription.microscriptionId
-        + `&devid=` + this.props.userId + `&token=` + this.props.authToken, {})
+        axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/microscription/updatemicroscription?pcr=` + this.state.primaryColorRed + `&pcg=` + this.state.primaryColorGreen + `&pcb=` + this.state.primaryColorBlue
+            + `&scr=` + this.state.secondaryColorRed + `&scg=` + this.state.secondaryColorGreen + `&scb=` + this.state.secondaryColorBlue
+            + `&mcrscrpcst=` + document.getElementById('microscriptionCost').value
+            + `&mcrscrpnme=` + document.getElementById('microscriptionName').value
+            + `&mcrscrpdesc=` + document.getElementById('microscriptionDescription').value
+            + `&mcrscrpid=` + this.props.microscription.microscriptionId
+            + `&devid=` + this.props.userId + `&token=` + this.props.authToken, {})
             .then(res => {
                 console.log(res);
                 console.log(res.data);
@@ -180,6 +180,17 @@ class DetailedUserMicroscriptionDialog extends React.Component {
                 <DialogTitle>{this.props.microscription.microscriptionName}</DialogTitle>
                 <DialogContentText>${this.props.microscription.microscriptionCost} charged every {this.props.microscription.billingCycle} days</DialogContentText>
                 <DialogContentText>{this.props.microscription.microscriptionDescription}</DialogContentText>
+                {this.props.isDeveloperModal ?
+                    <div>
+                        <DialogContent style={{ padding: '20px' }}>
+                            <a href={'/microscription?s=' + this.props.microscription.microscriptionId} target="_self" onMouseOver="this.style.opacity='0.5'" style={{ background: 'linear-gradient(90deg, #E15392, #349CDE)', fontFamily: 'Avenir', fontSize: '20px', color: 'white', textDecoration: 'none', padding: '10px', width: '100px', height: '75px', borderRadius: '15px' }}>Microscribe <strong style={{ fontSize: '35px' }} >¢</strong></a>
+                        </DialogContent>
+
+                        <DialogContent style={{ padding: '20px' }}>
+                            <TextField disabled margin="normal" variant="outlined" style={{ margin: 8, height: '40px' }} label="Embed Button" defaultValue={`<a href='https://www.microscriptions.com/microscription?s=` + this.props.microscription.microscriptionId + `' target='_blank' style="background: linear-gradient(90deg, #E15392, #349CDE); font-family: 'Avenir'; font-size: 20px; color: white; text-decoration: none; padding: 10px; width: 100px; height: 75px; border-radius: 15px">Microscribe <strong style="font-size: 35px" >¢</strong></a>`}/>
+                        </DialogContent>
+                    </div>
+                    : <div></div>}
                 <DialogActions>
                     {!this.props.isDeveloperModal ? <Button onClick={this.handleUnsubscribe}>Unsubscribe</Button> : <Button onClick={this.handleUpdateMicroscription}>Edit</Button>}
                 </DialogActions>
@@ -272,47 +283,47 @@ class DetailedUserMicroscriptionDialog extends React.Component {
                             <br />
 
                             <DialogActions>
-                                <Button 
-                                fullWidth
-                                onClick={() => {
-                                    console.log('Ask for confimation on new Microscription creation.')
-                                    console.log('Microscription Name: ' + document.getElementById('microscriptionName').value);
-                                    console.log('Microscription Description: ' + document.getElementById('microscriptionDescription').value);
-                                    console.log('Microscription Cost: ' + document.getElementById('microscriptionCost').value);
-                                    console.log('Microscription primaryColorRed: ' + this.state.primaryColorRed);
-                                    console.log('Microscription primaryColorGreen: ' + this.state.primaryColorGreen);
-                                    console.log('Microscription primaryColorBlue: ' + this.state.primaryColorBlue);
-                                    console.log('Microscription secondaryColorRed: ' + this.state.secondaryColorRed);
-                                    console.log('Microscription secondaryColorGreen: ' + this.state.secondaryColorGreen);
-                                    console.log('Microscription secondaryColorBlue: ' + this.state.secondaryColorBlue);
-                                    if (document.getElementById('microscriptionCost').value > 0 
-                                        && this.state.primaryColorRed >= 0 && this.state.primaryColorRed <= 255
-                                        && this.state.primaryColorGreen >= 0 && this.state.primaryColorGreen <= 255
-                                        && this.state.primaryColorBlue >= 0 && this.state.primaryColorBlue <= 255
-                                        && this.state.secondaryColorRed >= 0 && this.state.secondaryColorRed <= 255
-                                        && this.state.secondaryColorGreen >= 0 && this.state.secondaryColorGreen <= 255
-                                        && this.state.secondaryColorBlue >= 0 && this.state.secondaryColorBlue <= 255
-                                        && document.getElementById('microscriptionName').value != ''
-                                        && document.getElementById('microscriptionDescription').value != '') {
-                                        this.handleUpdateConfirmationMicroscription()
-                                    }
-                                }}
+                                <Button
+                                    fullWidth
+                                    onClick={() => {
+                                        console.log('Ask for confimation on new Microscription creation.')
+                                        console.log('Microscription Name: ' + document.getElementById('microscriptionName').value);
+                                        console.log('Microscription Description: ' + document.getElementById('microscriptionDescription').value);
+                                        console.log('Microscription Cost: ' + document.getElementById('microscriptionCost').value);
+                                        console.log('Microscription primaryColorRed: ' + this.state.primaryColorRed);
+                                        console.log('Microscription primaryColorGreen: ' + this.state.primaryColorGreen);
+                                        console.log('Microscription primaryColorBlue: ' + this.state.primaryColorBlue);
+                                        console.log('Microscription secondaryColorRed: ' + this.state.secondaryColorRed);
+                                        console.log('Microscription secondaryColorGreen: ' + this.state.secondaryColorGreen);
+                                        console.log('Microscription secondaryColorBlue: ' + this.state.secondaryColorBlue);
+                                        if (document.getElementById('microscriptionCost').value > 0
+                                            && this.state.primaryColorRed >= 0 && this.state.primaryColorRed <= 255
+                                            && this.state.primaryColorGreen >= 0 && this.state.primaryColorGreen <= 255
+                                            && this.state.primaryColorBlue >= 0 && this.state.primaryColorBlue <= 255
+                                            && this.state.secondaryColorRed >= 0 && this.state.secondaryColorRed <= 255
+                                            && this.state.secondaryColorGreen >= 0 && this.state.secondaryColorGreen <= 255
+                                            && this.state.secondaryColorBlue >= 0 && this.state.secondaryColorBlue <= 255
+                                            && document.getElementById('microscriptionName').value != ''
+                                            && document.getElementById('microscriptionDescription').value != '') {
+                                            this.handleUpdateConfirmationMicroscription()
+                                        }
+                                    }}
                                     style={{
                                         background: "linear-gradient(90deg, #E15392, #349CDE)",
                                         padding: '15px',
                                     }}
                                 >Edit Microscription</Button>
-                                </DialogActions>
-                                <DialogActions>
+                            </DialogActions>
+                            <DialogActions>
                                 <Button onClick={() => {
                                     console.log('Delete microscription clicked.');
                                     this.handleDeleteConfirmationMicroscription()
                                 }}
-                                fullWidth
-                                style={{
-                                    padding: '5px',
-                                    color: 'red'
-                                }}>
+                                    fullWidth
+                                    style={{
+                                        padding: '5px',
+                                        color: 'red'
+                                    }}>
                                     Delete Microscription
                                 </Button>
                             </DialogActions>
