@@ -25,6 +25,7 @@ import CookieConsent from 'react-cookie-consent';
 import myFirstMicroscriptionQR from './MyFirstQRCode.png';
 import StripeCheckout from 'react-stripe-checkout';
 import CircularSlider from '@fseehawer/react-circular-slider';
+import { Container, Row, Col } from 'react-grid-system';
 
 
 import ReactGA from 'react-ga';
@@ -186,7 +187,7 @@ class App extends React.Component {
   }
 
   createPaymentIntent() {
-    axios.get(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/stripe/createpaymentintent?chgamt=` + this.state.sliderPaymentAmount * 100 + `&userid=` + this.state.userId + `&token=` + this.state.authToken)
+    axios.get(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/stripe/createpaymentintent?chgamt=` + ((Number(this.state.sliderPaymentAmount*0.029 + 0.31 + this.state.sliderPaymentAmount).toFixed(2)) * 100) + `&userid=` + this.state.userId + `&token=` + this.state.authToken)
       .then((res) => {
         console.log("paymentIntent response: " + res.data);
         if (res.data == "704") {
@@ -650,7 +651,7 @@ class App extends React.Component {
                   </Grid>
                   <Grid item>
                     {this.state.userId == null ? (<TextField className="inputTxtField" id="usernameTxt" label="Username" variant="outlined" />) : (<div></div>)} <br /><br />
-                    {this.state.userId == null ? (<TextField className="inputTxtField" id="passwordTxt" label="Password" variant="outlined" type="password" />) : (<div></div>)} <br /><br />
+                    {this.state.userId == null ? (<TextField className="inputTxtField" id="passwordTxt" label="Password" variant="outlined" type="password" onKeyUp={(refName, e) => { console.log(refName + ' | ' + e) }} />) : (<div></div>)} <br /><br />
                   </Grid>
                   <Grid item>
                     <Button variant="contained" color="primary" autofocus onClick={() => {
@@ -884,7 +885,8 @@ class App extends React.Component {
                         style={{
                           background: "linear-gradient(90deg, #E15392, #349CDE)",
                           padding: '10px',
-                          color: 'white'
+                          color: 'white',
+                          marginBottom: '50px'
                         }}><p style={{ fontFamily: 'Avenir' }}>Continue to Payment</p></Button>
 
                     </div>
@@ -899,21 +901,61 @@ class App extends React.Component {
                             padding: '15px'
                           }} className="BottomPadding"> &lt; Back </Button>
 
+                        <Container>
+                          <Row >
+                            <Col sm={12} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
+                              <h3>Order Summary</h3>
+                            </Col>
+                          </Row>
+                          <Row sm={12}>
+                            <Col sm={8} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
+                              <em>Account Credit</em>
+                            </Col>
+                            <Col sm={4} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
+                              ${this.state.sliderPaymentAmount + '.00'}
+                            </Col>
+                          </Row>
+                          <Row sm={12}>
+                            <Col sm={8} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
+                              <em>Stripe Fee</em>
+                            </Col>
+                            <Col sm={4} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
+                              ${(Number(this.state.sliderPaymentAmount*0.029 + 0.31).toFixed(2))}
+                            </Col>
+                          </Row>
+                          <Row >
+                            <Col sm={8} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
+                              Total
+                                </Col>
+                            <Col sm={4} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
+                              <strong>${(Number(this.state.sliderPaymentAmount*0.029 + 0.31 + this.state.sliderPaymentAmount).toFixed(2))}</strong>
+                            </Col>
+                          </Row>
+
+
+                        </Container>
+
                         {/* <StripeProvider apiKey="pk_test_XUvbDOvpZQJmDwFJl5ZzvSeb00rzEbdSV0" >
                           <CheckoutForm />
                         </StripeProvider> */}
 
                         <br /><br />
 
+                        <Grid container direction="column">
+                          <Grid item>
+
+                          </Grid>
+                        </Grid>
+
                         <StripeCheckout
                           token={this.onToken}
-                          stripeKey="pk_test_XUvbDOvpZQJmDwFJl5ZzvSeb00rzEbdSV0"
-                          amount={this.state.sliderPaymentAmount * 100}
+                          stripeKey="pk_live_50bzcAmuhbHdCPNMbxaYyz4D00PNlV4H7U"
+                          amount={(this.state.sliderPaymentAmount*0.029 + 0.31 + this.state.sliderPaymentAmount).toFixed(2) * 100}
                           name="Microscriptions Inc."
                           description="Account Credit"
                           currency="USD"
                           email="payments@microscriptions.com"
-                          panelLabel="Add Credit"
+                          panelLabel="Pay"
                         />
                         <p style={{ fontFamilt: 'Avenir' }}>Powered by Stripe</p>
 
