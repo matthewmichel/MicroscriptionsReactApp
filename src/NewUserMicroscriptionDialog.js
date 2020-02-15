@@ -54,6 +54,8 @@ class NewUserMicroscriptionDialog extends Component {
 
     handleConfirmSubscribe = () => {
         // POST REQUEST TO CREATE NEW USERMICROSCRIPTION
+        this.props.loadingCallback(true);
+        this.setState({ show: false });
         console.log("unsubscribe confirmed");
         axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/microscription/insertnewusermicroscription?newuuid=` + uuidv4() + `&mcrscrpid=` + this.state.microscription.microscriptionId
             + `&userid=` + this.props.userId + `&token=` + this.props.authToken, {})
@@ -64,6 +66,7 @@ class NewUserMicroscriptionDialog extends Component {
                     this.setState({ show: false });
                     this.props.onCompletion(true);
                 }
+                this.props.loadingCallback(false);
             })
     }
 

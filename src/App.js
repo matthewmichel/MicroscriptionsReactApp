@@ -6,9 +6,9 @@ import dualiPhoneImage from './mockup-featuring-two-overlapping-iphones-xs-max-a
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import axios from 'axios';
-import { Grid, Paper, Icon, InputAdornment, IconButton, Divider, Card, CardContent, Snackbar, Tooltip, DialogActions } from '@material-ui/core'
+import { Grid, Paper, Icon, InputAdornment, IconButton, Divider, Card, CardContent, Snackbar, Tooltip, DialogActions, Backdrop } from '@material-ui/core'
 import MuiAlert from '@material-ui/lab/Alert';
-import { makeStyles } from '@material-ui/core/styles';
+import { withStyles } from '@material-ui/core/styles';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import GridListTileBar from '@material-ui/core/GridListTileBar';
@@ -26,6 +26,9 @@ import myFirstMicroscriptionQR from './MyFirstQRCode.png';
 import StripeCheckout from 'react-stripe-checkout';
 import CircularSlider from '@fseehawer/react-circular-slider';
 import { Container, Row, Col } from 'react-grid-system';
+import { ScaleLoader } from 'react-spinners';
+import { Chart } from '@bit/primefaces.primereact.chart';
+
 
 
 import ReactGA from 'react-ga';
@@ -68,6 +71,7 @@ class App extends React.Component {
       developerRevenue: -7.77,
       weeklyDeveloperRevenue: -7.77,
       monthlyDeveloperRevenue: -7.77,
+      dailyDeveloperRevenue: -7.77,
       showNewMicroscriptionDialog: false, // This controls the dialog box that pops up when a creator wants to add a new microscription
       showNewMicroscriptionDialogAfterLogin: false,
       addNewMicroscriptionId: null,
@@ -83,6 +87,8 @@ class App extends React.Component {
       showExpiredSessionSnackbar: false,
       showUnsubscribeConfirmation: false,
       unsubscribeMicroscription: null,
+      showInvalidLoginSnackbar: false,
+      loading: false,
     };
   }
 
@@ -98,12 +104,13 @@ class App extends React.Component {
       .then((res) => {
         if (res.data == null) {
         } else if (res.data != null) {
-          this.setState({ userData: res.data })
+          this.setState({ userData: res.data, loading: false })
           this.getUserMicroscriptionList(this.state.userId);
           if (this.state.userData.isDeveloper == true) {
             this.setState({ isDeveloper: true })
             this.getDeveloperMicroscriptionList(this.state.userId)
             this.getDeveloperRevenue(this.state.userId, "-1")
+            this.getDeveloperRevenue(this.state.userId, "1")
             this.getDeveloperRevenue(this.state.userId, "7")
             this.getDeveloperRevenue(this.state.userId, "30")
           }
@@ -123,13 +130,14 @@ class App extends React.Component {
   }
 
   getUserMicroscriptionList(userId) {
+    this.setState({ loading: true });
     axios.get(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/microscription/getmicroscriptionbyuserid?userid=` + userId + `&token=` + this.state.authToken)
       .then((res) => {
         if (res.data == null) {
           console.log('invalid request. potentially bad userId')
         } else if (res.data != null) {
           console.log(res.data);
-          this.setState({ userMicroscriptionList: res.data, appCurrentScreen: 'MyAccount' })
+          this.setState({ userMicroscriptionList: res.data, appCurrentScreen: 'MyAccount', loading: false })
         }
       })
   }
@@ -150,14 +158,19 @@ class App extends React.Component {
     axios.get(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/mcrscrpdevdata/getrevenuewithinxdaysbydeveloperid?developerid=` + developerId + `&timeinterval=` + timeframe + `&token=` + this.state.authToken)
       .then((res) => {
         if (res.data.sum == null) {
+
         } else if (res.data.sum != null) {
           if (timeframe == "-1") {
             this.setState({ developerRevenue: res.data.sum })
+          } else if (timeframe == "1") {
+            this.setState({ dailyDeveloperRevenue: res.data.sum })
           } else if (timeframe == "7") {
             this.setState({ weeklyDeveloperRevenue: res.data.sum })
           } else if (timeframe == "30") {
             this.setState({ monthlyDeveloperRevenue: res.data.sum })
           }
+
+          console.log('GET DEV REV: ' + res.data.sum)
 
         }
       })
@@ -166,6 +179,7 @@ class App extends React.Component {
   checkUserCredentials() {
 
     let currentComponent = this
+    this.setState({ loading: true });
 
 
 
@@ -174,11 +188,14 @@ class App extends React.Component {
         console.log(res);
         if (res.data == null) {
           document.getElementById('passwordTxt').value = ''
-          this.setState({ userId: res.data.userId, authToken: res.data.sessionKeyId })
+          this.setState({ userId: res.data.userId, authToken: res.data.sessionKeyId, loading: false })
+        } else if (res.data == "invalid") {
+          document.getElementById('passwordTxt').value = ''
+          this.setState({ showInvalidLoginSnackbar: true, loading: false });
         } else if (res.data != null) {
           this.handleMcrscrpurChange(res.data.userId);
           this.handleMcrscrpaxChange(res.data.sessionKeyId);
-          this.setState({ userId: res.data.userId, loggedIn: true, authToken: res.data.sessionKeyId })
+          this.setState({ userId: res.data.userId, loggedIn: true, authToken: res.data.sessionKeyId, loading: false })
           this.getUserInformation(res.data.userId)
 
         }
@@ -187,15 +204,18 @@ class App extends React.Component {
   }
 
   createPaymentIntent() {
-    axios.get(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/stripe/createpaymentintent?chgamt=` + ((Number(this.state.sliderPaymentAmount*0.029 + 0.31 + this.state.sliderPaymentAmount).toFixed(2)) * 100) + `&userid=` + this.state.userId + `&token=` + this.state.authToken)
+    this.setState({ loading: true });
+    axios.get(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/stripe/createpaymentintent?chgamt=` + ((Number(this.state.sliderPaymentAmount * 0.029 + 0.31 + this.state.sliderPaymentAmount).toFixed(2)) * 100) + `&userid=` + this.state.userId + `&token=` + this.state.authToken)
       .then((res) => {
         console.log("paymentIntent response: " + res.data);
         if (res.data == "704") {
           console.log("pi response: " + res.data);
+          this.setState({ loading: false });
         } else if (res.data == "702") {
           console.log("paymentIntent response: " + res.data);
+          this.setState({ loading: false });
         } else if (res.data != null) {
-          this.setState({ currentpi: res.data, piready: true });
+          this.setState({ currentpi: res.data, piready: true, loading: false });
         }
       })
   }
@@ -205,10 +225,11 @@ class App extends React.Component {
   // --------------------------------------------------------------------------------------------------------------
 
   logoutUser = () => {
+    this.setState({ loading: true });
     console.log("logging out user.")
-    this.setState({ userData: null, userId: null, loggedIn: false });
     this.handleMcrscrpurChange(null);
     this.handleMcrscrpaxChange(null);
+    this.setState({ userData: null, userId: null, loggedIn: false, loading: false });
   }
 
   UserMicroscriptionSelected = key => {
@@ -237,13 +258,21 @@ class App extends React.Component {
     this.setState({ showExpiredSessionSnackbar: false });
   };
 
+  handleSnackbarInvalidLoginClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    this.setState({ showInvalidLoginSnackbar: false });
+  };
+
   handleUnsubscribe = () => {
     console.log("unsubscribe clicked for: " + this.props.microscription.microscriptionId);
     this.setState({ showUnsubscribeConfirmation: true });
   }
 
   handleConfirmUnsubscribe = () => {
-
+    this.setState({ loading: true, showUnsubscribeConfirmation: false });
     const userid = {
       userid: this.state.userId
     }
@@ -258,11 +287,17 @@ class App extends React.Component {
         console.log(res);
         console.log(res.data);
         if (res.status == 200) {
-          this.setState({ showUnsubscribeConfirmation: false });
+          this.setState({ showUnsubscribeConfirmation: false, loading: false });
           this.getUserMicroscriptionList(this.state.userId);
         }
       })
   }
+
+  onKeyDownHandlerLogin = e => {
+    if (e.keyCode === 13) {
+      this.checkUserCredentials();
+    }
+  };
 
   // --------------------------------------------------------------------------------------------------------------
   //                                                  CALLBACKS
@@ -300,6 +335,10 @@ class App extends React.Component {
   CallbackSetAppScreen = (screenName) => {
     console.log('setting app screen to: ' + screenName);
     this.setState({ appCurrentScreen: screenName });
+  }
+
+  CallbackChangeLoadingValue = (boolean) => {
+    this.setState({ loading: boolean });
   }
 
   CallbackAddNewMicroscriptionId = (microscriptionId) => {
@@ -353,6 +392,7 @@ class App extends React.Component {
               this.setState({ isDeveloper: true })
               this.getDeveloperMicroscriptionList(this.state.userId)
               this.getDeveloperRevenue(this.state.userId, "-1")
+              this.getDeveloperRevenue(this.state.userId, "1")
               this.getDeveloperRevenue(this.state.userId, "7")
               this.getDeveloperRevenue(this.state.userId, "30")
             }
@@ -392,12 +432,26 @@ class App extends React.Component {
       })
   }
 
-
   // --------------------------------------------------------------------------------------------------------------
   //                                                 RENDER APP.JS
   // --------------------------------------------------------------------------------------------------------------
 
   render() {
+
+    // --------------------------------------------------------------------------------------------------------------
+    //                                                  DATA MODELS
+    // --------------------------------------------------------------------------------------------------------------
+
+    const developerRevenueData = {
+      labels: ['Today', 'This Week', 'This Month', 'Over a Month'],
+      datasets: [
+        {
+          data: [Number(this.state.dailyDeveloperRevenue).toFixed(2), Number(this.state.weeklyDeveloperRevenue).toFixed(2), Number(this.state.monthlyDeveloperRevenue).toFixed(2), Number(this.state.developerRevenue - this.state.monthlyDeveloperRevenue - this.state.weeklyDeveloperRevenue - this.state.dailyDeveloperRevenue).toFixed(2)],
+          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#5bcf5f'],
+          hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#5bcf5f']
+        }
+      ]
+    };
 
     // GOOGLE ANALYTICS
     const trackingId = "UA-157985337-1"; // Replace with your Google Analytics tracking ID
@@ -427,19 +481,6 @@ class App extends React.Component {
       );
     };
 
-    const useStyles = makeStyles(theme => ({
-      root: {
-        flexGrow: 1,
-      },
-      paper: {
-        height: 140,
-        width: 100,
-      },
-      control: {
-        padding: theme.spacing(2),
-      },
-    }));
-
     const ArrowLeft = Arrow({ text: '<', className: 'arrow-prev' });
     const ArrowRight = Arrow({ text: '>', className: 'arrow-next' });
 
@@ -459,7 +500,7 @@ class App extends React.Component {
       <div className="App">
 
         <header className="App-header">
-          <Route exact path={"/microscription"} render={props => <NewUserMicroscriptionDialog {...props} onCompletion={this.CallbackAddNewUserMicroscriptionComplete} userId={this.state.userId} isLoggedIn={this.state.loggedIn} setAppScreen={this.CallbackSetAppScreen} setAddNewMicroscriptionId={this.CallbackAddNewMicroscriptionId} setShowNewUserMicroscriptionDialogAfterLogin={this.CallbackShowNewUserMicroscriptionDialogAfterLogin} authToken={this.state.authToken} />} />
+          <Route exact path={"/microscription"} render={props => <NewUserMicroscriptionDialog {...props} loadingCallback={this.CallbackChangeLoadingValue} onCompletion={this.CallbackAddNewUserMicroscriptionComplete} userId={this.state.userId} isLoggedIn={this.state.loggedIn} setAppScreen={this.CallbackSetAppScreen} setAddNewMicroscriptionId={this.CallbackAddNewMicroscriptionId} setShowNewUserMicroscriptionDialogAfterLogin={this.CallbackShowNewUserMicroscriptionDialogAfterLogin} authToken={this.state.authToken} />} />
         </header>
 
         <CookieConsent location="bottom" buttonText="I Understand." expires={150} style={{ width: '70%', marginLeft: '15%' }} buttonStyle={{ alignContent: "center" }}>
@@ -474,8 +515,14 @@ class App extends React.Component {
           </Alert>
         </Snackbar>
 
+        <Snackbar open={this.state.showInvalidLoginSnackbar} autoHideDuration={5000} onClose={this.handleSnackbarInvalidLoginClose}>
+          <Alert onClose={this.handleSnackbarInvalidLoginClose} severity="error" style={{ color: 'white' }}>
+            Wrong Username or Password
+          </Alert>
+        </Snackbar>
+
         {this.state.showNewUserMicroscriptionDialog ?
-          <NewUserMicroscriptionDialog onCompletion={this.CallbackAddNewUserMicroscriptionComplete} userId={this.state.userId} isLoggedIn={this.state.loggedIn} microscriptionId={this.state.addNewMicroscriptionId} setAppScreen={this.CallbackSetAppScreen} setAddNewMicroscriptionId={this.CallbackAddNewMicroscriptionId} setShowNewUserMicroscriptionDialogAfterLogin={this.CallbackShowNewUserMicroscriptionDialogAfterLogin} authToken={this.state.authToken} />
+          <NewUserMicroscriptionDialog loadingCallback={this.CallbackChangeLoadingValue} onCompletion={this.CallbackAddNewUserMicroscriptionComplete} userId={this.state.userId} isLoggedIn={this.state.loggedIn} microscriptionId={this.state.addNewMicroscriptionId} setAppScreen={this.CallbackSetAppScreen} setAddNewMicroscriptionId={this.CallbackAddNewMicroscriptionId} setShowNewUserMicroscriptionDialogAfterLogin={this.CallbackShowNewUserMicroscriptionDialogAfterLogin} authToken={this.state.authToken} />
           :
           <div></div>
         }
@@ -494,18 +541,30 @@ class App extends React.Component {
           </div>
         </Dialog>
 
+        <Backdrop open={this.state.loading} onClick={() => { }} style={{ zIndex: '100', color: '#fff' }}>
+          <ScaleLoader
+            size={150}
+            color={"#349CDE"}
+            loading={this.state.loading}
+          />
+        </Backdrop>
+
         {/* IF APPCURRENTSCREEN == MyAccount */}
         {this.state.appCurrentScreen == 'MyAccount' ?
           <body className="App-Body">
             <div className="App">
-              <Grid container justify="center" alignItems="flex-start">
+              <Grid container direction="row" justify="center" >
                 <Grid item style={{ fontFamily: 'Avenir' }}>
                   <Grid containter direction="column" style={{ borderRightStyle: 'solid', borderRightWidth: '1px', padding: '1em', alignContent: "0px auto" }}>
                     <Grid item>
-                      <h2 className="BottomPadding">{this.state.userData.mcrscrpUsername}</h2>
+                      <h4 style={{ fontFamily: 'Avenir' }}>Your Username</h4>
+                      <Grid container direction="row" style={{ margin: 'auto', width: 'auto' }}>
+                        <Grid item style={{ fontSize: '24px', marginTop: '9px' }}>¢</Grid>
+                        <Grid item style={{ fontSize: '35px', background: "linear-gradient(90deg, #E15392 0%, #349CDE 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{this.state.userData.mcrscrpUsername}</Grid>
+                      </Grid>
                     </Grid>
                     <Grid item>
-                      <h4>Account Credit: <h3>${this.state.userData.accountCredit}</h3></h4>
+                      <h4>Account Credit: <Paper style={{ backgroundColor: '#DDDDDD' }}><h3>${this.state.userData.accountCredit}</h3></Paper></h4>
                     </Grid>
                     <Grid item>
                       <Button variant="contained"
@@ -550,11 +609,11 @@ class App extends React.Component {
                     </div> : <div></div>}
                     {console.log("value 0 " + this.state.userMicroscriptionList[0])}
                     {this.state.userMicroscriptionList != "704" ? this.state.userMicroscriptionList.map((microscription, index) => (
-                      <div style={{ textAlign: 'center' }}>
-                        <Grid item xs={9} style={{ fontFamily: 'Avenir' }}>
-                          <Grid container direction="row" justify="center" alignItems="center">
+                      <div>
+                        <Grid item xs={9} style={{ fontFamily: 'Avenir', margin: 'auto' }}>
+                          <Grid container direction="row" justify="center">
                             <Grid item style={{ borderRightStyle: 'solid', borderRightWidth: '1px' }} xs={6}>
-                              <Grid container direction="column" style={{ padding: '1em' }} justify="space-evenly">
+                              <Grid container direction="column" style={{ padding: '1em' }}>
                                 <Grid item>
                                   <p style={{ margin: '1px' }}><strong>{microscription.microscriptionName}</strong></p>
                                 </Grid>
@@ -565,7 +624,7 @@ class App extends React.Component {
                             </Grid>
                             <Grid item style={{ borderRightStyle: 'solid', borderRightWidth: '1px', textAlign: "center", alignContent: "center" }} xs={4}>
                               <Grid container direction="column" style={{ padding: '1em' }}>
-                                <h3 style={{ margin: '1px' }}>${((Number(microscription.microscriptionCost) + 0.01).toFixed(2))}</h3>
+                                <h3 style={{ margin: '1px' }}>${((Number(microscription.microscriptionCost)))}</h3>
                                 due on<br />
 
                                 <p style={{ margin: '1px', fontSize: '20px', width: '100%' }}>{microscription.nextBillingDate}</p>
@@ -650,8 +709,8 @@ class App extends React.Component {
                     <h3 style={{ padding: '1em' }}>{this.state.loggedIn ? '' : 'Log In'}</h3>
                   </Grid>
                   <Grid item>
-                    {this.state.userId == null ? (<TextField className="inputTxtField" id="usernameTxt" label="Username" variant="outlined" />) : (<div></div>)} <br /><br />
-                    {this.state.userId == null ? (<TextField className="inputTxtField" id="passwordTxt" label="Password" variant="outlined" type="password" onKeyUp={(refName, e) => { console.log(refName + ' | ' + e) }} />) : (<div></div>)} <br /><br />
+                    {this.state.userId == null ? (<TextField onKeyDown={this.onKeyDownHandlerLogin} className="inputTxtField" id="usernameTxt" label="Username" variant="outlined" />) : (<div></div>)} <br /><br />
+                    {this.state.userId == null ? (<TextField onKeyDown={this.onKeyDownHandlerLogin} className="inputTxtField" id="passwordTxt" label="Password" variant="outlined" type="password" onKeyUp={(refName, e) => { console.log(refName + ' | ' + e) }} />) : (<div></div>)} <br /><br />
                   </Grid>
                   <Grid item>
                     <Button variant="contained" color="primary" autofocus onClick={() => {
@@ -742,101 +801,107 @@ class App extends React.Component {
 
                   <br />
 
-                  <Grid container direction="row" justify="center" alignItems="center" style={{ fontFamily: 'Avenir' }}>
-                    <Grid item style={{ margin: '1em' }}>
-                      <Paper style={{ paddingLeft: '1em', paddingRight: '1em', paddingTop: '0.5em', paddingBottom: '0.5em', backgroundColor: 'white', borderStyle: 'solid', borderWidth: '1px' }}>
-                        <Grid containter direction="column">
-                          <Grid item>
-                            <h3>Weekly Revenue</h3>
-                          </Grid>
-                          <Grid item>
-                            <h2>${this.state.weeklyDeveloperRevenue}</h2>
-                          </Grid>
-                        </Grid>
-                      </Paper>
-                    </Grid>
-                    <Grid item style={{ margin: '1em' }}>
-                      <Paper style={{ paddingLeft: '1em', paddingRight: '1em', paddingTop: '0.5em', paddingBottom: '0.5em', backgroundColor: 'white', borderStyle: 'solid', borderWidth: '1px' }}>
-                        <Grid containter direction="column">
-                          <Grid item>
-                            <h3>Monthly Revenue</h3>
-                          </Grid>
-                          <Grid item>
-                            <h2>${this.state.monthlyDeveloperRevenue}</h2>
-                          </Grid>
-                        </Grid>
-                      </Paper>
-                    </Grid>
-                    <Grid item style={{ margin: '1em' }}>
-                      <Paper style={{ paddingLeft: '1em', paddingRight: '1em', paddingTop: '0.5em', paddingBottom: '0.5em', backgroundColor: 'white', borderStyle: 'solid', borderWidth: '1px' }}>
-                        <Grid containter direction="column">
-                          <Grid item>
-                            <h3>Lifetime Revenue</h3>
-                          </Grid>
-                          <Grid item>
-                            <h2>${this.state.developerRevenue}</h2>
-                          </Grid>
-                        </Grid>
-                      </Paper>
-                    </Grid>
-                  </Grid>
-
-                  <br />
-
-                  <div className="userMicroscriptionList" style={{ flexGrow: 1, display: 'flex', flexWrap: 'wrap' }}>
-                    <Grid container
-                      direction="row"
-                      justify="center"
-                      alignItems="center">
-
-                      <br /><br />
-                      {this.state.developerMicroscriptionList.map((microscription, index) => (
-                        <Button onClick={() => {
-                          this.setState({ selectedMicroscription: microscription });
-                          this.setState({ showDeveloperDetailedMicroscriptionModal: true });
-                          console.log(this.state.selectedMicroscription)
-                        }} style={{ margin: '1em', fontFamily: 'Avenir' }}>
-                          <Paper style={{ paddingLeft: '1em', paddingRight: '1em', paddingTop: '0.5em', paddingBottom: '0.5em', background: "linear-gradient(90deg, rgba(" + microscription.primaryColorRed + "," + microscription.primaryColorGreen + "," + microscription.primaryColorBlue + ", 1), rgba(" + microscription.secondaryColorRed + "," + microscription.secondaryColorGreen + "," + microscription.secondaryColorBlue + ", 1))" }}>
-                            <Grid containter direction="column">
-                              <Grid container direction="row" alignContent="space-between" alignItems="stretch" >
-                                <Grid item style={{ paddingRight: '1em' }}>
-                                  <h3>{microscription.microscriptionName}</h3>
-                                </Grid>
-                                <Grid item><p>{microscription.microscriptionCost}</p></Grid>
-                              </Grid>
-                              <Grid container direction="row">
-                                <Grid item style={{ paddingRight: '1em' }}>
-                                  <p>User Count: <strong>xx</strong></p>
-                                </Grid>
-                                <Grid item>
-                                  <p>Monthly Revenue: <strong>$x.xx</strong></p>
-                                </Grid>
+                  <Grid container direction="column" style={{ padding: '35px' }}>
+                    <Grid item>
+                      <Grid container direction="row" justify="center">
+                        <Grid item>
+                          <Paper style={{ padding: '15px', backgroundColor: '#DDDDDD', width: 'auto', height: 'auto', margin: '30px', alignItems: 'center' }}>
+                            <Grid container direction="column">
+                              <Grid item>Revenue</Grid>
+                              <Grid item>
+                                {Number(this.state.developerRevenue) == 0.00 ? <h4 style={{ width: '400px' }}>Your Revenue Data will show up here<br />when your users start subscribing.</h4> :
+                                  <div style={{ width: 400 }}>
+                                    <Chart type='doughnut' data={developerRevenueData} />
+                                  </div>
+                                }
                               </Grid>
                             </Grid>
                           </Paper>
-                        </Button>
-                      ))}
-                      {this.state.showDeveloperDetailedMicroscriptionModal == true ? (<DetailedUserMicroscriptionDialog microscription={this.state.selectedMicroscription} userId={this.state.userId} dialogClosed={this.developerDialogClosedCallback} isDeveloperModal={true} authToken={this.state.authToken} />) : (<div></div>)}
-                      <Grid item>
-                        <Button variant="contained" style={{
-                          background: "linear-gradient(90deg, #E15392, #349CDE)",
-                          padding: '30px',
-                          color: 'white',
-                          margin: '4em',
-                        }}
-                          onClick={() => {
-                            console.log('Add new microscription clicked.');
-                            this.setState({ showNewMicroscriptionDialog: true })
-                          }}>
-                          Add New Microscription
-                          </Button>
+                        </Grid>
+                        <Grid item>
+                          <Paper style={{ padding: '15px', backgroundColor: '#DDDDDD', width: 'auto', height: 'auto', margin: '30px', alignItems: 'center' }}>
+                            <Grid container direction="column">
+                              <Grid item>Lifetime Earnings</Grid>
+                              <Grid item>
+                                <div style={{ width: 400 }}>
+                                  <h1>${this.state.developerRevenue}</h1>
+                                </div>
+                              </Grid>
+                            </Grid>
+                          </Paper>
+                        </Grid>
                       </Grid>
                     </Grid>
-                    <br />
-                    {this.state.showNewMicroscriptionDialog == true ? (<AddNewMicroscriptionDialog userId={this.state.userId} dialogClosed={this.addNewMicroscriptionDialogClosedCallback} authToken={this.state.authToken} />) : (<div></div>)}
-                    <br />
-                    <br />
-                  </div>
+                    <Grid item>
+                      <Button variant="contained" style={{
+                        background: "linear-gradient(90deg, #E15392, #349CDE)",
+                        padding: '30px',
+                        color: 'white',
+                        margin: '4em',
+                      }}
+                        onClick={() => {
+                          console.log('Add new microscription clicked.');
+                          this.setState({ showNewMicroscriptionDialog: true })
+                        }}>
+                        Add New Microscription
+                          </Button>
+                    </Grid>
+                  </Grid>
+
+                  <Grid container direction="row" style={{ marginBottom: '50px' }} justify="center">
+                    <Grid item style={{ borderRightStyle: 'solid', borderRightWidth: '1px' }}>
+                      <div className="userMicroscriptionList" style={{ flexGrow: 1, display: 'flex', flexWrap: 'wrap' }}>
+                        <Grid container
+                          direction="row"
+                          justify="center"
+                          alignItems="center">
+
+                          <br /><br />
+                          {this.state.developerMicroscriptionList.map((microscription, index) => (
+                            <Button onClick={() => {
+                              this.setState({ selectedMicroscription: microscription });
+                              this.setState({ showDeveloperDetailedMicroscriptionModal: true });
+                              console.log(this.state.selectedMicroscription)
+                            }} style={{ margin: '1em', fontFamily: 'Avenir' }}>
+                              <Paper style={{ paddingLeft: '1em', paddingRight: '1em', paddingTop: '0.5em', paddingBottom: '0.5em', background: "linear-gradient(90deg, rgba(" + microscription.primaryColorRed + "," + microscription.primaryColorGreen + "," + microscription.primaryColorBlue + ", 1), rgba(" + microscription.secondaryColorRed + "," + microscription.secondaryColorGreen + "," + microscription.secondaryColorBlue + ", 1))" }}>
+                                <Grid containter direction="column">
+                                  <Grid container direction="row" alignContent="space-between" alignItems="stretch" >
+                                    <Grid item style={{ paddingRight: '1em' }}>
+                                      <h3>{microscription.microscriptionName}</h3>
+                                    </Grid>
+                                    <Grid item><p>{microscription.microscriptionCost}</p></Grid>
+                                  </Grid>
+                                  <Grid container direction="row">
+                                    <Grid item style={{ paddingRight: '1em' }}>
+                                      <p>User Count: <strong>xx</strong></p>
+                                    </Grid>
+                                    <Grid item>
+                                      <p>Monthly Revenue: <strong>$x.xx</strong></p>
+                                    </Grid>
+                                  </Grid>
+                                </Grid>
+                              </Paper>
+                            </Button>
+                          ))}
+                          {this.state.showDeveloperDetailedMicroscriptionModal == true ? (<DetailedUserMicroscriptionDialog microscription={this.state.selectedMicroscription} userId={this.state.userId} dialogClosed={this.developerDialogClosedCallback} isDeveloperModal={true} authToken={this.state.authToken} />) : (<div></div>)}
+                        </Grid>
+                        <br />
+                        {this.state.showNewMicroscriptionDialog == true ? (<AddNewMicroscriptionDialog userId={this.state.userId} dialogClosed={this.addNewMicroscriptionDialogClosedCallback} authToken={this.state.authToken} />) : (<div></div>)}
+                        <br />
+                        <br />
+                      </div>
+                    </Grid>
+                    <Grid item>
+                      <Grid container direction="column">
+                        <Grid item>
+                          <h1>Creator FAQ</h1>
+                          <p style={{}}>Welcome to your Creator Portal. Here you can create and edit your Microscriptions. This is also where you adjust settings and view analytics. Please use the contact support button below to email us if you have any issues. </p>
+                        </Grid>
+                      </Grid>
+                    </Grid>
+
+                  </Grid>
+
                 </div>
 
                 : this.state.appCurrentScreen == 'Creator' && this.state.isDeveloper == false ?
@@ -920,7 +985,7 @@ class App extends React.Component {
                               <em>Stripe Fee</em>
                             </Col>
                             <Col sm={4} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
-                              ${(Number(this.state.sliderPaymentAmount*0.029 + 0.31).toFixed(2))}
+                              ${(Number(this.state.sliderPaymentAmount * 0.029 + 0.31).toFixed(2))}
                             </Col>
                           </Row>
                           <Row >
@@ -928,7 +993,7 @@ class App extends React.Component {
                               Total
                                 </Col>
                             <Col sm={4} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
-                              <strong>${(Number(this.state.sliderPaymentAmount*0.029 + 0.31 + this.state.sliderPaymentAmount).toFixed(2))}</strong>
+                              <strong>${(Number(this.state.sliderPaymentAmount * 0.029 + 0.31 + this.state.sliderPaymentAmount).toFixed(2))}</strong>
                             </Col>
                           </Row>
 
@@ -950,7 +1015,7 @@ class App extends React.Component {
                         <StripeCheckout
                           token={this.onToken}
                           stripeKey="pk_live_50bzcAmuhbHdCPNMbxaYyz4D00PNlV4H7U"
-                          amount={(this.state.sliderPaymentAmount*0.029 + 0.31 + this.state.sliderPaymentAmount).toFixed(2) * 100}
+                          amount={(this.state.sliderPaymentAmount * 0.029 + 0.31 + this.state.sliderPaymentAmount).toFixed(2) * 100}
                           name="Microscriptions Inc."
                           description="Account Credit"
                           currency="USD"

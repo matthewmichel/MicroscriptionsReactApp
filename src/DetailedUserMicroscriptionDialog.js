@@ -189,6 +189,12 @@ class DetailedUserMicroscriptionDialog extends React.Component {
                         <DialogContent style={{ padding: '20px' }}>
                             <TextField disabled margin="normal" variant="outlined" style={{ margin: 8, height: '40px' }} label="Embed Button" defaultValue={`<a href='https://www.microscriptions.com/microscription?s=` + this.props.microscription.microscriptionId + `' target='_blank' style="background: linear-gradient(90deg, #E15392, #349CDE); font-family: 'Avenir'; font-size: 20px; color: white; text-decoration: none; padding: 10px; width: 100px; height: 75px; border-radius: 15px">Microscribe <strong style="font-size: 35px" >¢</strong></a>`}/>
                         </DialogContent>
+
+                        Use the below link if you cannot embed a button.
+
+                        <DialogContent style={{ padding: '20px' }}>
+                            <TextField disabled margin="normal" variant="outlined" style={{ margin: 8, height: '40px' }} label="Microscription Link" defaultValue={`https://www.microscriptions.com/microscription?s=` + this.props.microscription.microscriptionId}/>
+                        </DialogContent>
                     </div>
                     : <div></div>}
                 <DialogActions>
