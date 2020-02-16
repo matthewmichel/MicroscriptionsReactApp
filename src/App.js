@@ -557,7 +557,6 @@ class App extends React.Component {
                 <Grid item style={{ fontFamily: 'Avenir' }}>
                   <Grid containter direction="column" style={{ borderRightStyle: 'solid', borderRightWidth: '1px', padding: '1em', alignContent: "0px auto" }}>
                     <Grid item>
-                      <h4 style={{ fontFamily: 'Avenir' }}>Your Username</h4>
                       <Grid container direction="row" style={{ margin: 'auto', width: 'auto' }}>
                         <Grid item style={{ fontSize: '24px', marginTop: '9px' }}>¢</Grid>
                         <Grid item style={{ fontSize: '35px', background: "linear-gradient(90deg, #E15392 0%, #349CDE 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{this.state.userData.mcrscrpUsername}</Grid>
