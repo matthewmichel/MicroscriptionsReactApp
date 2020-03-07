@@ -70,22 +70,19 @@ class DetailedUserMicroscriptionDialog extends React.Component {
         if (cookies.get('mcrscrpur') != null && cookies.get('mcrscrpax') != null) {
             //console.log('keys found. ' + cookies.get('mcrscrpur') + ' ' + cookies.get('mcrscrpax'))
 
-            axios.get(`https://uc5za0d1xe.execute-api.us-east-2.amazonaws.com/100/account/checkcredentials?un=` + cookies.get('mcrscrpur') + `&px=` + encodeURIComponent(cookies.get('mcrscrpax')))
+            axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/microscription/microscriptionvalidation/updatetoken?userid=` + cookies.get('mcrscrpur') + `&token=` + encodeURIComponent(cookies.get('mcrscrpax')))
                 .then((res) => {
                     console.log(res);
-                    if (res.data == null) {
-                        document.getElementById('passwordTxt2').value = ''
-                        this.setState({ userId: res.data.userId, authToken: res.data.sessionKeyId })
-                    } else if (res.data == "invalid") {
-                        document.getElementById('passwordTxt2').value = ''
-                        this.setState({ showInvalidLoginSnackbar: true });
+                    if (res.data == "invalid") {
+                        console.log('invalid previous session token')
+                    } else if (res.data == null) {
+                        console.log("something went wrong...")
                     } else if (res.data != null) {
-                        this.handleMcrscrpurChange(res.data.userId);
                         this.handleMcrscrpaxChange(res.data.sessionKeyId);
-                        this.setState({ userId: res.data.userId, authToken: res.data.sessionKeyId })
+                        this.setState({ authToken: res.data.sessionKeyId })
 
                         console.log('redirecting to: ' + this.state.redirectUrl);
-                        var fullRedirectUrl = this.state.redirectUrl + (this.state.redirectUrl.includes('?') ? '&mcrscrpax=' + res.data.sessionKeyId : '?mcrscrpax=' + res.data.sessionKeyId);
+                        var fullRedirectUrl = this.state.redirectUrl + (this.state.redirectUrl.includes('?') ? '&mcrscrpax=' + res.data : '?mcrscrpax=' + res.data);
                         window.location.replace(fullRedirectUrl);
                     }
                 })
@@ -164,7 +161,7 @@ class DetailedUserMicroscriptionDialog extends React.Component {
                 <TextField onKeyDown={this.onKeyDownHandlerLogin} className="inputTxtField" id="usernameTxt2" label="Username" variant="outlined" /> <br /><br />
                 <TextField onKeyDown={this.onKeyDownHandlerLogin} className="inputTxtField" id="passwordTxt2" label="Password" variant="outlined" type="password" onKeyUp={(refName, e) => { console.log(refName + ' | ' + e) }} />
                 <DialogActions>
-                    <Button onClick={this.handleUnsubscribe}>Login</Button>
+                    <Button onClick={this.checkUserCredentials}>Login</Button>
                 </DialogActions>
             </Dialog>
         )

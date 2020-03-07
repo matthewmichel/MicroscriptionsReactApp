@@ -31,10 +31,14 @@ class NewUserMicroscriptionDialog extends Component {
                 if (res.data == null) {
                     console.log('invalid mcrscrpid')
                 } else if (res.data != null) {
-                    console.log(res.data);
+                    //console.log(res.data);
                     this.setState({ microscription: res.data, show: true })
                 }
             })
+
+        const values = queryString.parse(this.props.location.search);
+        console.log('redirect = ' + values.u);
+        this.setState({ redirectUrl: values.u });
 
     }
 
@@ -43,7 +47,8 @@ class NewUserMicroscriptionDialog extends Component {
         this.state = {
             show: false,
             microscription: null,
-            isLoggedIn: this.props.isLoggedIn
+            isLoggedIn: this.props.isLoggedIn,
+            redirectUrl: ''
         };
     }
 
@@ -60,11 +65,19 @@ class NewUserMicroscriptionDialog extends Component {
         axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/microscription/insertnewusermicroscription?newuuid=` + uuidv4() + `&mcrscrpid=` + this.state.microscription.microscriptionId
             + `&userid=` + this.props.userId + `&token=` + this.props.authToken, {})
             .then(res => {
-                console.log(res);
+                console.log("res: " + JSON.stringify(res));
                 console.log(res.data);
-                if (res.status == 200) {
+                if (res.data == "success" && this.state.redirectUrl == '') {
                     this.setState({ show: false });
                     this.props.onCompletion(true);
+                } else if (res.data == "success" && this.state.redirectUrl != '') {
+                    console.log('redirecting to: ' + this.state.redirectUrl);
+                    var fullRedirectUrl = this.state.redirectUrl + (this.state.redirectUrl.includes('?') ? '&mcrscrpax=' + this.props.authToken : '?mcrscrpax=' + this.props.authToken);
+                    window.location.replace(fullRedirectUrl);
+                } else if (res.data == "alreadySubscribed" && this.state.redirectUrl != '') {
+                    console.log('redirecting to: ' + this.state.redirectUrl);
+                    var fullRedirectUrl = this.state.redirectUrl + (this.state.redirectUrl.includes('?') ? '&mcrscrpax=' + this.props.authToken : '?mcrscrpax=' + this.props.authToken);
+                    window.location.replace(fullRedirectUrl);
                 }
                 this.props.loadingCallback(false);
             })
@@ -99,14 +112,14 @@ class NewUserMicroscriptionDialog extends Component {
                     onClose={this.handleDeleteConfirmationClose}
                 >
                     <div style={modalStyle} className="ModalUnsubscribeConfirmationStyle">
-                        <h3>Subscribe to '{this.state.microscription.microscriptionName}'</h3>
+                        <h3>Microscribe to '{this.state.microscription.microscriptionName}'</h3>
                         <Container>
                             <Row sm={12}>
                                 <Col sm={8} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
                                     <em>{this.state.microscription.microscriptionName}</em>
                                 </Col>
                                 <Col sm={4} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
-                                    ${(Number(this.state.microscription.microscriptionCost) + 0.01)}
+                                    ${(Number(this.state.microscription.microscriptionCost)).toFixed(2)}
                                 </Col>
                             </Row>
                             <Row >
@@ -114,7 +127,7 @@ class NewUserMicroscriptionDialog extends Component {
                                     Total
                                 </Col>
                                 <Col sm={4} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
-                                    <strong>${(Number(this.state.microscription.microscriptionCost) + 0.01)}</strong>
+                                    <strong>${(Number(this.state.microscription.microscriptionCost)).toFixed(2)}</strong>
                                 </Col>
                             </Row>
                             <Row >
@@ -125,8 +138,12 @@ class NewUserMicroscriptionDialog extends Component {
 
                         </Container>
 
+
+                        {/* MOBILE APP LINK
                         <p>- OR -</p>
-                        <p><a href={"mcrsb://beta?productId=" + this.state.microscription.microscriptionId}>Open in the app</a></p>
+                        <p><a href={"mcrsb://beta?productId=" + this.state.microscription.microscriptionId}>Open in the app</a></p> 
+                        */}
+
                         <DialogActions>
                             <Button variant="contained"
                                 style={{
@@ -141,9 +158,7 @@ class NewUserMicroscriptionDialog extends Component {
                                         color: 'black'
                                     }} onClick={this.handleClose}>Cancel</Button>
                             </a>
-
                         </DialogActions>
-
                     </div>
                 </Dialog>
             )

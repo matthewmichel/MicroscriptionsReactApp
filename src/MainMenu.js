@@ -103,7 +103,7 @@ class MainMenu extends React.Component {
             <IconButton edge="start" className={classes.menuButton} color="black" onClick={this.toggleDrawer(true)}>
               <MenuIcon />
             </IconButton>
-            {/* <IconButton edge="end" onClick={console.log('home clicked.')}>
+            {/* <IconButton edge="end" style={{ position: 'relative' }} onClick={console.log('home clicked.')}>
               <img src={squareLogo} className="SquareLogoStyle" />
             </IconButton> */}
           </Toolbar>
