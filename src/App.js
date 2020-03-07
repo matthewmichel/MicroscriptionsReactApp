@@ -6,7 +6,7 @@ import dualiPhoneImage from './mockup-featuring-two-overlapping-iphones-xs-max-a
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import axios from 'axios';
-import { Grid, Paper, Icon, InputAdornment, IconButton, Divider, Card, CardContent, Snackbar, Tooltip, DialogActions, Backdrop } from '@material-ui/core'
+import { Grid, Paper, Icon, InputAdornment, IconButton, Divider, Card, CardContent, Snackbar, Tooltip, DialogActions, Backdrop, Checkbox } from '@material-ui/core'
 import MuiAlert from '@material-ui/lab/Alert';
 import { withStyles } from '@material-ui/core/styles';
 import GridList from '@material-ui/core/GridList';
@@ -16,6 +16,7 @@ import { DialogContentText, emphasize, Slider } from '@material-ui/core';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DetailedUserMicroscriptionDialog from './DetailedUserMicroscriptionDialog'
+import LoginRedirectDialog from './LoginRedirectDialog';
 import MainMenu from './MainMenu'
 import { border } from '@material-ui/system';
 import AddNewMicroscriptionDialog from './AddNewMicroscriptionDialog'
@@ -89,6 +90,7 @@ class App extends React.Component {
       unsubscribeMicroscription: null,
       showInvalidLoginSnackbar: false,
       loading: false,
+      registrationTaCChecked: false,
     };
   }
 
@@ -299,6 +301,10 @@ class App extends React.Component {
     }
   };
 
+  handleRegistrationCheckbox = event => {
+    this.setState({ registrationTaCChecked: event.target.checked });
+  };
+
   // --------------------------------------------------------------------------------------------------------------
   //                                                  CALLBACKS
   // --------------------------------------------------------------------------------------------------------------
@@ -501,6 +507,7 @@ class App extends React.Component {
 
         <header className="App-header">
           <Route exact path={"/microscription"} render={props => <NewUserMicroscriptionDialog {...props} loadingCallback={this.CallbackChangeLoadingValue} onCompletion={this.CallbackAddNewUserMicroscriptionComplete} userId={this.state.userId} isLoggedIn={this.state.loggedIn} setAppScreen={this.CallbackSetAppScreen} setAddNewMicroscriptionId={this.CallbackAddNewMicroscriptionId} setShowNewUserMicroscriptionDialogAfterLogin={this.CallbackShowNewUserMicroscriptionDialogAfterLogin} authToken={this.state.authToken} />} />
+          <Route exact path={"/redirecturl"} render={props => <LoginRedirectDialog {...props} showDialog={true} />} />
         </header>
 
         <CookieConsent location="bottom" buttonText="I Understand." expires={150} style={{ width: '70%', marginLeft: '15%' }} buttonStyle={{ alignContent: "center" }}>
@@ -981,7 +988,7 @@ class App extends React.Component {
                           </Row>
                           <Row sm={12}>
                             <Col sm={8} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
-                              <em>Stripe Fee</em>
+                              <em>Processing Fee</em>
                             </Col>
                             <Col sm={4} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
                               ${(Number(this.state.sliderPaymentAmount * 0.029 + 0.31).toFixed(2))}
@@ -1117,33 +1124,56 @@ class App extends React.Component {
                             }}
                           /><br /><br />
 
-                          <Button onClick={() => {
-                            if (document.getElementById('registrationPassword').value == document.getElementById('registrationPasswordAgain').value
-                              && document.getElementById('registrationEmail').value != ""
-                              && document.getElementById('registrationFirstName').value != ""
-                              && document.getElementById('registrationLastName').value != ""
-                              && document.getElementById('registrationUsername').value != "") {
-                              axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/microscription/insertnewuser?email=` + document.getElementById('registrationEmail').value
-                                + `&mcrscrpusn=` + document.getElementById('registrationUsername').value
-                                + `&mcrscrppx=` + encodeURIComponent(document.getElementById('registrationPassword').value)
-                                + `&firstname=` + document.getElementById('registrationFirstName').value
-                                + `&lastname=` + document.getElementById('registrationLastName').value
-                                , {})
-                                .then(res => {
-                                  console.log(res);
-                                  console.log(res.data);
-                                  if (res.status == 200) {
-                                    this.setState({ appCurrentScreen: 'Login' });
-                                  }
-                                })
-                            }
-                          }}
-                            style={{
-                              background: "linear-gradient(90deg, #E15392, #349CDE)",
-                              paddingLeft: '3em',
-                              paddingRight: '3em',
-                              color: 'white'
-                            }}><p style={{ fontFamily: 'Avenir' }}>Register</p></Button>
+                          <Checkbox
+                            checked={this.state.registrationTaCChecked}
+                            onChange={this.handleRegistrationCheckbox}
+                            value="primary" />
+                          I have read the <a href="http://microscriptions.com/TaC.html" target="_blank">Terms and Conditions</a>.
+
+                            <br /><br />
+
+                          {this.state.registrationTaCChecked ?
+                            <Button
+                              onClick={() => {
+                                if (document.getElementById('registrationPassword').value == document.getElementById('registrationPasswordAgain').value
+                                  && document.getElementById('registrationEmail').value != ""
+                                  && document.getElementById('registrationFirstName').value != ""
+                                  && document.getElementById('registrationLastName').value != ""
+                                  && document.getElementById('registrationUsername').value != "") {
+                                  axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/microscription/insertnewuser?email=` + document.getElementById('registrationEmail').value
+                                    + `&mcrscrpusn=` + document.getElementById('registrationUsername').value
+                                    + `&mcrscrppx=` + encodeURIComponent(document.getElementById('registrationPassword').value)
+                                    + `&firstname=` + document.getElementById('registrationFirstName').value
+                                    + `&lastname=` + document.getElementById('registrationLastName').value
+                                    , {})
+                                    .then(res => {
+                                      console.log(res);
+                                      console.log(res.data);
+                                      if (res.status == 200) {
+                                        this.setState({ appCurrentScreen: 'Login' });
+                                      }
+                                    })
+                                }
+                              }}
+                              style={{
+                                background: "linear-gradient(90deg, #E15392, #349CDE)",
+                                paddingLeft: '3em',
+                                paddingRight: '3em',
+                                color: 'white'
+                              }}><p style={{ fontFamily: 'Avenir' }}>Register</p></Button>
+                            :
+                            <Button
+                              disabled
+                              style={{
+                                background: "linear-gradient(90deg, #E15392, #349CDE)",
+                                paddingLeft: '3em',
+                                paddingRight: '3em',
+                                color: 'white',
+                                opacity: '60%'
+                                
+                              }}><p style={{ fontFamily: 'Avenir' }}>Register</p></Button>
+
+                          }
 
                         </div>
 

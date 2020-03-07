@@ -158,9 +158,6 @@ class DetailedUserMicroscriptionDialog extends React.Component {
     }
 
     render() {
-
-
-
         return (
             <Dialog
                 open={this.state.show}
