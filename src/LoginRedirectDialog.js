@@ -78,9 +78,9 @@ class DetailedUserMicroscriptionDialog extends React.Component {
                     } else if (res.data == null) {
                         console.log("something went wrong...")
                     } else if (res.data != null) {
-                        this.handleMcrscrpaxChange(res.data.sessionKeyId);
+                        this.handleMcrscrpaxChange(res.data);
                         this.setState({ authToken: res.data.sessionKeyId })
-
+                        console.log('us: ' + cookies.get('mcrscrpur') + ' | ' + 'ax: ' + cookies.get('mcrscrpax'));
                         console.log('redirecting to: ' + this.state.redirectUrl);
                         var fullRedirectUrl = this.state.redirectUrl + (this.state.redirectUrl.includes('?') ? '&mcrscrpax=' + res.data : '?mcrscrpax=' + res.data);
                         window.location.replace(fullRedirectUrl);
@@ -94,6 +94,7 @@ class DetailedUserMicroscriptionDialog extends React.Component {
     }
 
     checkUserCredentials() {
+        const { cookies } = this.props;
         axios.get(`https://uc5za0d1xe.execute-api.us-east-2.amazonaws.com/100/account/checkcredentials?un=` + document.getElementById('usernameTxt2').value + `&px=` + encodeURIComponent(document.getElementById('passwordTxt2').value))
             .then((res) => {
                 console.log(res);
@@ -107,7 +108,7 @@ class DetailedUserMicroscriptionDialog extends React.Component {
                     this.handleMcrscrpurChange(res.data.userId);
                     this.handleMcrscrpaxChange(res.data.sessionKeyId);
                     this.setState({ userId: res.data.userId, authToken: res.data.sessionKeyId })
-
+                    console.log('us: ' + cookies.get('mcrscrpur') + ' | ' + 'ax: ' + cookies.get('mcrscrpax'));
                     console.log('redirecting to: ' + this.state.redirectUrl);
                     var fullRedirectUrl = this.state.redirectUrl + (this.state.redirectUrl.includes('?') ? '&mcrscrpax=' + res.data.sessionKeyId : '?mcrscrpax=' + res.data.sessionKeyId);
                     window.location.replace(fullRedirectUrl);
