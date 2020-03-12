@@ -84,6 +84,7 @@ class AddNewMicroscriptionDialog extends React.Component {
     }
 
     handleBillingCycleChange = event => {
+        console.log(event.target.value);
         this.setState({ newMicroscriptionBillingCycle: event.target.value });
     }
 
@@ -95,8 +96,11 @@ class AddNewMicroscriptionDialog extends React.Component {
             userid: this.props.userId
         }
 
-        if (typeof document.getElementById('microscriptionCost').value === 'number' && (document.getElementById('microscriptionCost').value < 0.02 || document.getElementById('microscriptionCost').value > 0.5)) {
-            this.setState({ newMicroscriptionCost: document.getElementById('microscriptionCost').value })
+        console.log(typeof document.getElementById('microscriptionCost').value)
+
+        if (Number(document.getElementById('microscriptionCost').value) >= 0.02 && Number(document.getElementById('microscriptionCost').value <= 0.5)) {
+            console.log(Number(document.getElementById('microscriptionCost').value));
+            this.setState({ newMicroscriptionCost: Number(document.getElementById('microscriptionCost').value) })
         } else {
             this.setState({ showInvalidAmountError: true });
         }
@@ -110,14 +114,29 @@ class AddNewMicroscriptionDialog extends React.Component {
         }
 
         // POST REQUEST TO CREATE NEW MICROSCRIPTION
-        console.log("unsubscribe confirmed");
+        console.log("microscription details");
+        console.log(document.getElementById('microscriptionName').value)
+        console.log(document.getElementById('microscriptionDescription').value)
+        console.log(document.getElementById('microscriptionCost').value)
+        console.log(document.getElementById('microscriptionBillingCycle').value)
+        console.log('Ask for confimation on new Microscription creation.')
+        console.log('Microscription Name: ' + this.state.newMicroscriptionName);
+        console.log('Microscription Description: ' + this.state.newMicroscriptionDescription);
+        console.log('Microscription Cost: ' + this.state.newMicroscriptionCost);
+        console.log('Microscription Billing Cycle Length: ' + this.state.newMicroscriptionBillingCycle);
+        console.log('Microscription primaryColorRed: ' + this.state.primaryColorRed);
+        console.log('Microscription primaryColorGreen: ' + this.state.primaryColorGreen);
+        console.log('Microscription primaryColorBlue: ' + this.state.primaryColorBlue);
+        console.log('Microscription secondaryColorRed: ' + this.state.secondaryColorRed);
+        console.log('Microscription secondaryColorGreen: ' + this.state.secondaryColorGreen);
+        console.log('Microscription secondaryColorBlue: ' + this.state.secondaryColorBlue);
         axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/microscription/insertnewmicroscription?mcrscrpid=` + uuidv4() + `&developerid=` + this.props.userId
             + `&pcr=` + this.state.primaryColorRed + `&pcg=` + this.state.primaryColorGreen + `&pcb=` + this.state.primaryColorBlue
             + `&scr=` + this.state.secondaryColorRed + `&scg=` + this.state.secondaryColorGreen + `&scb=` + this.state.secondaryColorBlue
-            + `&mcrscrpcst=` + document.getElementById('microscriptionCost').value
-            + `&mcrscrpnme=` + document.getElementById('microscriptionName').value
-            + `&mcrscrpdesc=` + document.getElementById('microscriptionDescription').value
-            + `&bcl=` + document.getElementById('microscriptionBillingCycle').value + `&token=` + this.props.authToken, {})
+            + `&mcrscrpcst=` + this.state.newMicroscriptionCost
+            + `&mcrscrpnme=` + this.state.newMicroscriptionName
+            + `&mcrscrpdesc=` + this.state.newMicroscriptionDescription
+            + `&bcl=` + this.state.newMicroscriptionBillingCycle + `&token=` + this.props.authToken, {})
             .then(res => {
                 console.log(res);
                 console.log(res.data);
@@ -193,9 +212,9 @@ class AddNewMicroscriptionDialog extends React.Component {
                 />
                 {this.state.showInvalidAmountError ? <p style={{ color: 'red' }}>Please enter a number between 0.01 and 0.50.</p> : <div></div>}
                 <FormControl varient="filled" style={{
-                        padding: '15px',
-                        width: '75%'
-                    }}>
+                    padding: '15px',
+                    width: '75%'
+                }}>
                     <InputLabel id="demo-simple-select-label">Billing Cycle</InputLabel>
                     <Select
                         labelId="demo-simple-select-label"
@@ -232,27 +251,17 @@ class AddNewMicroscriptionDialog extends React.Component {
                 <DialogActions>
                     <Button onClick={() => {
                         console.log('Ask for confimation on new Microscription creation.')
-                        console.log('Microscription Name: ' + document.getElementById('microscriptionName').value);
-                        console.log('Microscription Description: ' + document.getElementById('microscriptionDescription').value);
-                        console.log('Microscription Cost: ' + document.getElementById('microscriptionCost').value);
-                        console.log('Microscription Billing Cycle Length: ' + document.getElementById('microscriptionBillingCycle').value);
+                        console.log('Microscription Name: ' + this.state.newMicroscriptionName);
+                        console.log('Microscription Description: ' + this.state.newMicroscriptionDescription);
+                        console.log('Microscription Cost: ' + this.state.newMicroscriptionCost);
+                        console.log('Microscription Billing Cycle Length: ' + this.state.newMicroscriptionBillingCycle);
                         console.log('Microscription primaryColorRed: ' + this.state.primaryColorRed);
                         console.log('Microscription primaryColorGreen: ' + this.state.primaryColorGreen);
                         console.log('Microscription primaryColorBlue: ' + this.state.primaryColorBlue);
                         console.log('Microscription secondaryColorRed: ' + this.state.secondaryColorRed);
                         console.log('Microscription secondaryColorGreen: ' + this.state.secondaryColorGreen);
                         console.log('Microscription secondaryColorBlue: ' + this.state.secondaryColorBlue);
-                        if (document.getElementById('microscriptionCost').value > 0 && document.getElementById('microscriptionBillingCycle').value > 0
-                            && this.state.primaryColorRed >= 0 && this.state.primaryColorRed <= 255
-                            && this.state.primaryColorGreen >= 0 && this.state.primaryColorGreen <= 255
-                            && this.state.primaryColorBlue >= 0 && this.state.primaryColorBlue <= 255
-                            && this.state.secondaryColorRed >= 0 && this.state.secondaryColorRed <= 255
-                            && this.state.secondaryColorGreen >= 0 && this.state.secondaryColorGreen <= 255
-                            && this.state.secondaryColorBlue >= 0 && this.state.secondaryColorBlue <= 255
-                            && document.getElementById('microscriptionName').value != ''
-                            && document.getElementById('microscriptionDescription').value != '') {
-                            this.handleAddMicroscription()
-                        }
+                        this.handleAddMicroscription();
                     }}
                         style={{
                             background: "linear-gradient(90deg, #E15392, #349CDE)",
