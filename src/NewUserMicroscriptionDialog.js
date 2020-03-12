@@ -39,6 +39,10 @@ class NewUserMicroscriptionDialog extends Component {
         const values = queryString.parse(this.props.location.search);
         console.log('redirect = ' + values.u);
         this.setState({ redirectUrl: values.u });
+        if(values.donation == 'true') {
+            console.log('donation enabled');
+            this.setState({ donation: true });
+        }
 
     }
 
@@ -48,7 +52,8 @@ class NewUserMicroscriptionDialog extends Component {
             show: false,
             microscription: null,
             isLoggedIn: this.props.isLoggedIn,
-            redirectUrl: ''
+            redirectUrl: '',
+            donation: false,
         };
     }
 
@@ -73,10 +78,16 @@ class NewUserMicroscriptionDialog extends Component {
                 } else if (res.data == "success" && this.state.redirectUrl != '') {
                     console.log('redirecting to: ' + this.state.redirectUrl);
                     var fullRedirectUrl = this.state.redirectUrl + (this.state.redirectUrl.includes('?') ? '&mcrscrpax=' + this.props.authToken : '?mcrscrpax=' + this.props.authToken);
+                    if(this.state.donation) {
+                        fullRedirectUrl = fullRedirectUrl + '&donation=true'
+                    }
                     window.location.replace(fullRedirectUrl);
                 } else if (res.data == "alreadySubscribed" && this.state.redirectUrl != '') {
                     console.log('redirecting to: ' + this.state.redirectUrl);
                     var fullRedirectUrl = this.state.redirectUrl + (this.state.redirectUrl.includes('?') ? '&mcrscrpax=' + this.props.authToken : '?mcrscrpax=' + this.props.authToken);
+                    if(this.state.donation) {
+                        fullRedirectUrl = fullRedirectUrl + '&donation=true'
+                    }
                     window.location.replace(fullRedirectUrl);
                 }
                 this.props.loadingCallback(false);

@@ -1,7 +1,7 @@
 import React from 'react'
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import { DialogContentText, DialogContent, DialogActions, Button, Modal, Paper } from '@material-ui/core';
+import { DialogContentText, DialogContent, DialogActions, Button, Modal, Paper, Slider, Select, MenuItem, FormControl, InputLabel } from '@material-ui/core';
 import { thisExpression } from '@babel/types';
 import './App.css';
 import { classes } from 'istanbul-lib-coverage';
@@ -9,6 +9,7 @@ import axios from 'axios'
 import { TextField } from '@material-ui/core';
 import { SketchPicker, CompactPicker } from 'react-color'
 import uuidv4 from 'uuid/v4'
+import CircularSlider from '@fseehawer/react-circular-slider';
 
 const styles = theme => ({
     root: {
@@ -37,6 +38,7 @@ class AddNewMicroscriptionDialog extends React.Component {
             show: true,
             showNewMicroscriptionConfirmation: false,
             newMicroscriptionConfirmed: false,
+            newMicroscriptionCost: 0.00,
             primaryColor: '#E15392',
             secondaryColor: '#349CDE',
             primaryColorRed: 225,
@@ -45,6 +47,10 @@ class AddNewMicroscriptionDialog extends React.Component {
             secondaryColorRed: 52,
             secondaryColorGreen: 156,
             secondaryColorBlue: 222,
+            showInvalidAmountError: false,
+            newMicroscriptionName: '',
+            newMicroscriptionDescription: '',
+            newMicroscriptionBillingCycle: 30
         };
     }
 
@@ -71,12 +77,36 @@ class AddNewMicroscriptionDialog extends React.Component {
         this.setState({ secondaryColorRed: color.rgb.r, secondaryColorGreen: color.rgb.g, secondaryColorBlue: color.rgb.b, secondaryColor: color });
     }
 
+    handleSliderCostChange = (value) => {
+        if (typeof value === 'number' && value <= 0.50 && value >= 0.01) {
+            this.setState({ newMicroscriptionCost: value });
+        }
+    }
+
+    handleBillingCycleChange = event => {
+        this.setState({ newMicroscriptionBillingCycle: event.target.value });
+    }
+
 
 
     handleConfirmMicroscription = () => {
 
         const userid = {
             userid: this.props.userId
+        }
+
+        if (typeof document.getElementById('microscriptionCost').value === 'number' && (document.getElementById('microscriptionCost').value < 0.02 || document.getElementById('microscriptionCost').value > 0.5)) {
+            this.setState({ newMicroscriptionCost: document.getElementById('microscriptionCost').value })
+        } else {
+            this.setState({ showInvalidAmountError: true });
+        }
+
+        this.setState({ newMicroscriptionName: document.getElementById('microscriptionName').value, newMicroscriptionDescription: document.getElementById('microscriptionDescription').value });
+
+        if (typeof document.getElementById('microscriptionBillingCycle').value === 'number' && (document.getElementById('microscriptionBillingNumber').value < 0.02 || document.getElementById('microscriptionCost').value > 0.5)) {
+            this.setState({ newMicroscriptionCost: document.getElementById('microscriptionCost').value })
+        } else {
+            this.setState({ showInvalidAmountError: true });
         }
 
         // POST REQUEST TO CREATE NEW MICROSCRIPTION
@@ -161,19 +191,27 @@ class AddNewMicroscriptionDialog extends React.Component {
                     }}
                     fullWidth={true}
                 />
-                <TextField
-                    margin="dense"
-                    id="microscriptionBillingCycle"
-                    label="Microscription Billing Cycle (in days)"
-                    type="number"
-                    placeholder="30"
-                    style={{
+                {this.state.showInvalidAmountError ? <p style={{ color: 'red' }}>Please enter a number between 0.01 and 0.50.</p> : <div></div>}
+                <FormControl varient="filled" style={{
                         padding: '15px',
                         width: '75%'
-                    }}
-                    fullWidth={true}
-                />
-
+                    }}>
+                    <InputLabel id="demo-simple-select-label">Billing Cycle</InputLabel>
+                    <Select
+                        labelId="demo-simple-select-label"
+                        id="microscriptionBillingCycle"
+                        value={this.state.newMicroscriptionBillingCycle}
+                        onChange={this.handleBillingCycleChange}
+                    >
+                        <MenuItem value={0}>One Time</MenuItem>
+                        <MenuItem value={1}>Daily</MenuItem>
+                        <MenuItem value={7}>Weekly</MenuItem>
+                        <MenuItem value={14}>Bi-Weekly</MenuItem>
+                        <MenuItem value={30}>Monthly</MenuItem>
+                        <MenuItem value={182}>Semi-Annually</MenuItem>
+                        <MenuItem value={365}>Annually</MenuItem>
+                    </Select>
+                </FormControl>
                 <br />
                 Primary Color:
                 <CompactPicker
