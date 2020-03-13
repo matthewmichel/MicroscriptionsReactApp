@@ -29,13 +29,14 @@ import CircularSlider from '@fseehawer/react-circular-slider';
 import { Container, Row, Col } from 'react-grid-system';
 import { ScaleLoader } from 'react-spinners';
 import { Chart } from '@bit/primefaces.primereact.chart';
+import validator from 'email-validator';
 
 
 
 import ReactGA from 'react-ga';
 
 // ICONS
-import { MonetizationOnIcon, Email, Person, Lock, Visibility, VisibilityOff, AccountCircle, CropFree, Devices, ArrowForward, LineStyle, Block } from '@material-ui/icons';
+import { MonetizationOnIcon, Email, Person, Lock, Visibility, VisibilityOff, AccountCircle, CropFree, Devices, ArrowForward, LineStyle, Block, FlashOnOutlined } from '@material-ui/icons';
 
 import {
   BrowserRouter as Router,
@@ -91,6 +92,9 @@ class App extends React.Component {
       showInvalidLoginSnackbar: false,
       loading: false,
       registrationTaCChecked: false,
+      registrationUsernameInUse: false,
+      registrationInvalidPasswords: false,
+      registrationInvalidEmail: false,
     };
   }
 
@@ -1034,7 +1038,9 @@ class App extends React.Component {
 
                       : this.state.appCurrentScreen == 'Register' ?
                         // IF CURRENTSCREEN == 'Register'
-                        <div className="largePadding">
+                        <div className="largePadding" style={{ fontFamily: 'Avenir' }}>
+                          <h1>Create Your Account</h1>
+                          <h4>Create your account to start subscribing to your digital content.</h4>
                           <TextField
                             id="registrationEmail"
                             className="RegistrationField"
@@ -1058,7 +1064,9 @@ class App extends React.Component {
                                 </InputAdornment>
                               ),
                             }}
-                          /><br /><br />
+                          />
+                          {this.state.registrationUsernameInUse ? <p style={{ color: 'red' }}>This username is taken.</p> : <div></div>}
+                          <br /><br />
                           <TextField
                             id="registrationFirstName"
                             className="RegistrationField"
@@ -1128,32 +1136,47 @@ class App extends React.Component {
                             checked={this.state.registrationTaCChecked}
                             onChange={this.handleRegistrationCheckbox}
                             value="primary" />
-                          I have read the <a href="http://microscriptions.com/TaC.html" target="_blank">Terms and Conditions</a>.
+                          I have read and accept the <a href="http://microscriptions.com/TaC.html" target="_blank">Terms and Conditions</a>.
 
                             <br /><br />
 
                           {this.state.registrationTaCChecked ?
                             <Button
                               onClick={() => {
-                                if (document.getElementById('registrationPassword').value == document.getElementById('registrationPasswordAgain').value
-                                  && document.getElementById('registrationEmail').value != ""
-                                  && document.getElementById('registrationFirstName').value != ""
-                                  && document.getElementById('registrationLastName').value != ""
-                                  && document.getElementById('registrationUsername').value != "") {
-                                  axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/microscription/insertnewuser?email=` + document.getElementById('registrationEmail').value
-                                    + `&mcrscrpusn=` + document.getElementById('registrationUsername').value
-                                    + `&mcrscrppx=` + encodeURIComponent(document.getElementById('registrationPassword').value)
-                                    + `&firstname=` + document.getElementById('registrationFirstName').value
-                                    + `&lastname=` + document.getElementById('registrationLastName').value
-                                    , {})
-                                    .then(res => {
-                                      console.log(res);
-                                      console.log(res.data);
-                                      if (res.status == 200) {
-                                        this.setState({ appCurrentScreen: 'Login' });
-                                      }
-                                    })
+                                if(validator.validate(document.getElementById('registrationEmail').value)) {
+                                  this.setState({ registrationInvalidEmail: false });
+                                } else {
+                                  this.setState({ registrationInvalidEmail: true });
+                                  console.log('invalid email');
                                 }
+
+                                axios.get('https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/user/checkusername?username=' + document.getElementById('registrationUsername').value, {})
+                                  .then(res => {
+                                    console.log(res.data.count);
+                                    if (Number(res.data) == 0) {
+                                      if (document.getElementById('registrationPassword').value == document.getElementById('registrationPasswordAgain').value
+                                        && document.getElementById('registrationEmail').value != ""
+                                        && document.getElementById('registrationFirstName').value != ""
+                                        && document.getElementById('registrationLastName').value != ""
+                                        && document.getElementById('registrationUsername').value != "") {
+                                        // axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/microscription/insertnewuser?email=` + document.getElementById('registrationEmail').value
+                                        //   + `&mcrscrpusn=` + document.getElementById('registrationUsername').value
+                                        //   + `&mcrscrppx=` + encodeURIComponent(document.getElementById('registrationPassword').value)
+                                        //   + `&firstname=` + document.getElementById('registrationFirstName').value
+                                        //   + `&lastname=` + document.getElementById('registrationLastName').value
+                                        //   , {})
+                                        //   .then(res => {
+                                        //     console.log(res);
+                                        //     console.log(res.data);
+                                        //     if (res.status == 200) {
+                                        //       this.setState({ appCurrentScreen: 'Login' });
+                                        //     }
+                                        //   })
+                                      }
+                                    } else if (Number(res.data.count) > 0) {
+                                      this.setState({ registrationUsernameInUse: true })
+                                    }
+                                  })
                               }}
                               style={{
                                 background: "linear-gradient(90deg, #E15392, #349CDE)",
@@ -1170,7 +1193,7 @@ class App extends React.Component {
                                 paddingRight: '3em',
                                 color: 'white',
                                 opacity: '60%'
-                                
+
                               }}><p style={{ fontFamily: 'Avenir' }}>Register</p></Button>
 
                           }
