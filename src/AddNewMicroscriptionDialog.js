@@ -130,21 +130,21 @@ class AddNewMicroscriptionDialog extends React.Component {
         console.log('Microscription secondaryColorRed: ' + this.state.secondaryColorRed);
         console.log('Microscription secondaryColorGreen: ' + this.state.secondaryColorGreen);
         console.log('Microscription secondaryColorBlue: ' + this.state.secondaryColorBlue);
-        axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/microscription/insertnewmicroscription?mcrscrpid=` + uuidv4() + `&developerid=` + this.props.userId
-            + `&pcr=` + this.state.primaryColorRed + `&pcg=` + this.state.primaryColorGreen + `&pcb=` + this.state.primaryColorBlue
-            + `&scr=` + this.state.secondaryColorRed + `&scg=` + this.state.secondaryColorGreen + `&scb=` + this.state.secondaryColorBlue
-            + `&mcrscrpcst=` + this.state.newMicroscriptionCost
-            + `&mcrscrpnme=` + this.state.newMicroscriptionName
-            + `&mcrscrpdesc=` + this.state.newMicroscriptionDescription
-            + `&bcl=` + this.state.newMicroscriptionBillingCycle + `&token=` + this.props.authToken, {})
-            .then(res => {
-                console.log(res);
-                console.log(res.data);
-                if (res.status == 200) {
-                    this.setState({ show: false });
-                    this.props.dialogClosed(false, true);
-                }
-            })
+        // axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/microscription/insertnewmicroscription?mcrscrpid=` + uuidv4() + `&developerid=` + this.props.userId
+        //     + `&pcr=` + this.state.primaryColorRed + `&pcg=` + this.state.primaryColorGreen + `&pcb=` + this.state.primaryColorBlue
+        //     + `&scr=` + this.state.secondaryColorRed + `&scg=` + this.state.secondaryColorGreen + `&scb=` + this.state.secondaryColorBlue
+        //     + `&mcrscrpcst=` + this.state.newMicroscriptionCost
+        //     + `&mcrscrpnme=` + this.state.newMicroscriptionName
+        //     + `&mcrscrpdesc=` + this.state.newMicroscriptionDescription
+        //     + `&bcl=` + this.state.newMicroscriptionBillingCycle + `&token=` + this.props.authToken, {})
+        //     .then(res => {
+        //         console.log(res);
+        //         console.log(res.data);
+        //         if (res.status == 200) {
+        //             this.setState({ show: false });
+        //             this.props.dialogClosed(false, true);
+        //         }
+        //     })
     }
 
     render() {
@@ -215,7 +215,7 @@ class AddNewMicroscriptionDialog extends React.Component {
                     padding: '15px',
                     width: '75%'
                 }}>
-                    <InputLabel id="demo-simple-select-label">Billing Cycle</InputLabel>
+                    <InputLabel id="demo-simple-select-label">Billed</InputLabel>
                     <Select
                         labelId="demo-simple-select-label"
                         id="microscriptionBillingCycle"
@@ -261,7 +261,10 @@ class AddNewMicroscriptionDialog extends React.Component {
                         console.log('Microscription secondaryColorRed: ' + this.state.secondaryColorRed);
                         console.log('Microscription secondaryColorGreen: ' + this.state.secondaryColorGreen);
                         console.log('Microscription secondaryColorBlue: ' + this.state.secondaryColorBlue);
-                        this.handleAddMicroscription();
+                        //this.handleAddMicroscription();
+                        console.log()
+                        this.setState({ newMicroscriptionName: document.getElementById('microscriptionName').value });
+                        console.log('set state name: ' + this.state.newMicroscriptionName);
                     }}
                         style={{
                             background: "linear-gradient(90deg, #E15392, #349CDE)",
