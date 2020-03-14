@@ -185,7 +185,7 @@ class AddNewMicroscriptionDialog extends React.Component {
             >
                 <DialogTitle>Add New Microscription</DialogTitle>
                 <Paper style={{ backgroundColor: '#CCCCCC', padding: '15px', color: 'black', textAlign: 'center', margin: '15px' }}>
-                    Create a new Microscription here! Make sure to fill out every field when creating your Microscription. Your Microscription cost must be $0.02-$0.10.
+                    Create a new Microscription here! Make sure to fill out every field when creating your Microscription. Your Microscription cost must be $0.02-$0.50.
                         <br />
                     <p style={{ color: 'red' }}>Reminder: A $0.01 fee applies everytime someone subscribes to your Microscription or pays to renew your Microscription.</p>
 

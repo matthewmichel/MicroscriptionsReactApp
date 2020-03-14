@@ -55,6 +55,7 @@ class App extends React.Component {
       userData: null,
       loggedIn: false,
       userMicroscriptionList: [],
+      userOneTimePurchasesList: [],
       developerMicroscriptionList: [],
       selectedMicroscription: null,
       showUserDetailedMicroscriptionModal: false,
@@ -139,7 +140,16 @@ class App extends React.Component {
           console.log('invalid request. potentially bad userId')
         } else if (res.data != null) {
           console.log(res.data);
-          this.setState({ userMicroscriptionList: res.data, appCurrentScreen: 'MyAccount', loading: false })
+          var microscriptionList = [];
+          var oneTimePurchasesList = [];
+          res.data.forEach(microscription => {
+            if (microscription.billingCycle != 0) {
+              microscriptionList.push(microscription);
+            } else if (microscription.billingCycle == 0) {
+              oneTimePurchasesList.push(microscription);
+            }
+          })
+          this.setState({ userMicroscriptionList: microscriptionList, userOneTimePurchasesList: oneTimePurchasesList, appCurrentScreen: 'MyAccount', loading: false })
         }
       })
   }
@@ -667,6 +677,72 @@ class App extends React.Component {
                           </Grid>
                         </Grid>
 
+                      </div>
+                      // <Grid item>
+                      //   <Button onClick={() => {
+                      //     this.setState({ selectedMicroscription: microscription });
+                      //     this.setState({ showUserDetailedMicroscriptionModal: true });
+                      //   }} style={{ margin: '1em', fontFamily: 'Avenir' }}>
+                      //     <Paper style={{ paddingLeft: '1em', paddingRight: '1em', paddingTop: '0.5em', paddingBottom: '0.5em' }}>
+                      //       <Grid containter direction="column" justify="space-between">
+                      //         <Grid container direction="row" alignContent="space-between" alignItems="stretch" >
+                      //           <Grid item style={{ paddingRight: '1em' }}>
+                      //             <h3>{microscription.microscriptionName}</h3>
+                      //           </Grid>
+                      //           <Grid item><p>{microscription.microscriptionCost}</p></Grid>
+                      //         </Grid>
+                      //       </Grid>
+                      //     </Paper>
+                      //   </Button>
+                      // </Grid>
+                    )) : <div></div>}
+
+                    {this.state.userOneTimePurchasesList.length > 0 ? <Grid item style={{ textAlign: "center" }}>
+                      <h2 style={{ fontFamily: 'Avenir' }}>Your One Time Purchases</h2>
+                    </Grid> : <div></div>}
+
+                    {this.state.userMicroscriptionList != "704" ? this.state.userOneTimePurchasesList.map((microscription, index) => (
+                      <div>
+                        <Grid item xs={9} style={{ fontFamily: 'Avenir', margin: 'auto' }}>
+                          <Grid container direction="row" justify="center">
+                            <Grid item style={{ borderRightStyle: 'solid', borderRightWidth: '1px' }} xs={6}>
+                              <Grid container direction="column" style={{ padding: '1em' }}>
+                                <Grid item>
+                                  <p style={{ margin: '1px' }}><strong>{microscription.microscriptionName}</strong></p>
+                                </Grid>
+                                <Grid item>
+                                  <p style={{ margin: '1px', fontSize: '20px' }}>{microscription.microscriptionDescription}</p>
+                                </Grid>
+                              </Grid>
+                            </Grid>
+                            <Grid item style={{ borderRightStyle: 'solid', borderRightWidth: '1px', textAlign: "center", alignContent: "center" }} xs={4}>
+                              <Grid container direction="column" justify="center" style={{ padding: '1em' }}>
+                                <h3 style={{ margin: '1px' }}>${((Number(microscription.microscriptionCost)))}</h3>
+                              </Grid>
+                            </Grid>
+                            <Grid item xs={2}>
+                              <Grid container direction="column" style={{ padding: '1em' }}>
+                                <Tooltip title="Upcoming Feature">
+                                  <span>
+                                    <IconButton disabled size="medium"><Email /></IconButton>
+                                  </span>
+                                </Tooltip>
+                                <Tooltip title="Upcoming Feature">
+                                  <span>
+                                    <IconButton disabled size="medium"><Devices /></IconButton>
+                                  </span>
+                                </Tooltip>
+                              </Grid>
+                            </Grid>
+                          </Grid>
+                          <Grid item>
+                            <Card style={{ marginBottom: '40px', background: "linear-gradient(90deg, rgba(" + microscription.primaryColorRed + "," + microscription.primaryColorGreen + "," + microscription.primaryColorBlue + ", 1), rgba(" + microscription.secondaryColorRed + "," + microscription.secondaryColorGreen + "," + microscription.secondaryColorBlue + ", 1))", maxHeigt: '7px', minHeight: '7px', height: '7px' }} >
+                              <CardContent>
+                              </CardContent>
+                            </Card>
+                          </Grid>
+                        </Grid>
+
 
                       </div>
                       // <Grid item>
@@ -687,6 +763,8 @@ class App extends React.Component {
                       //   </Button>
                       // </Grid>
                     )) : <div></div>}
+
+
                     {this.state.showUserDetailedMicroscriptionModal == true ? (<DetailedUserMicroscriptionDialog microscription={this.state.selectedMicroscription} userId={this.state.userId} dialogClosed={this.userDialogClosedCallback} isDeveloperModal={false} authToken={this.state.authToken} />) : (<div></div>)}
 
                   </Grid>
@@ -973,9 +1051,9 @@ class App extends React.Component {
                         <Paper style={{ width: '75%', padding: '2em', backgroundColor: 'rgb(255,255,255,85%)', margin: 'auto' }}>
                           <h3>Fill out the form below to become a Creator.</h3>
                           <br />
-                          <TextField variant="outlined" label="PayPal Email Address" id="creatorRegistrationPayPalEmail" placeholder="youremail@example.com" style={{ width: '300px' }}/>
+                          <TextField variant="outlined" label="PayPal Email Address" id="creatorRegistrationPayPalEmail" placeholder="youremail@example.com" style={{ width: '300px' }} />
                           <br /><p>This email should be connected to a PayPal account. This is how we will pay out the revenue you generate from your Microscriptions.</p>
-                          <br />{this.state.updateToCreatorInvalidEmailError ? <p style={{color: 'red'}}>Please enter a valid email address.</p> : <div></div>}<br />
+                          <br />{this.state.updateToCreatorInvalidEmailError ? <p style={{ color: 'red' }}>Please enter a valid email address.</p> : <div></div>}<br />
                           <TextField variant="outlined" label="Content Name" id="creatorContentName" style={{ width: '300px' }} />
                           <br /><p>This is the name of your business, blog, company, etc.</p>
                           <br /><br />
@@ -984,16 +1062,16 @@ class App extends React.Component {
                           <br /><br />
                           <TextField variant="outlined" label="Brief Description" id="creatorBriefDescription" multiline rows="4" style={{ width: '300px' }} />
                           <br /><p>Give us a brief description of what kind of content you create or what kind of products you sell. We'd love to get to know a little more about you.</p>
-                          <br />{this.state.updateToCreatorInvalidFieldsError ? <p style={{color: 'red'}}>Please fill out all the fields.</p> : <div></div>}<br />
+                          <br />{this.state.updateToCreatorInvalidFieldsError ? <p style={{ color: 'red' }}>Please fill out all the fields.</p> : <div></div>}<br />
                           <Button onClick={() => {
-                            if(validator.validate(document.getElementById('creatorRegistrationPayPalEmail').value)) {
-                              if(document.getElementById('creatorContentName').value != '' && document.getElementById('creatorContentLocation').value != '' && document.getElementById('creatorBriefDescription').value != '') {
+                            if (validator.validate(document.getElementById('creatorRegistrationPayPalEmail').value)) {
+                              if (document.getElementById('creatorContentName').value != '' && document.getElementById('creatorContentLocation').value != '' && document.getElementById('creatorBriefDescription').value != '') {
                                 axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/user/updatetocreator?uid=` + this.state.userId + `&token=` + this.state.authToken + `&ppe=` + document.getElementById('creatorRegistrationPayPalEmail').value + `&cn=` + document.getElementById('creatorContentName').value + `&cl=` + document.getElementById('creatorContentLocation').value + `&bd=` + document.getElementById('creatorBriefDescription').value, {})
-                                .then(res => {
-                                  if(res.data == 'success') {
-                                    this.getUserInformation(this.state.userId);
-                                  }
-                                })
+                                  .then(res => {
+                                    if (res.data == 'success') {
+                                      this.getUserInformation(this.state.userId);
+                                    }
+                                  })
                               } else {
                                 // all fields must be filled out
                                 this.setState({ updateToCreatorInvalidFieldsError: true });

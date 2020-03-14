@@ -175,7 +175,7 @@ class DetailedUserMicroscriptionDialog extends React.Component {
 
             >
                 <DialogTitle>{this.props.microscription.microscriptionName}</DialogTitle>
-                <DialogContentText>${this.props.microscription.microscriptionCost} charged every {this.props.microscription.billingCycle} days</DialogContentText>
+                {this.props.microscription.billingCycle != 0 ? <DialogContentText>${this.props.microscription.microscriptionCost} charged every {this.props.microscription.billingCycle} days</DialogContentText> : <DialogContentText>${this.props.microscription.microscriptionCost} charged once.</DialogContentText>}
                 <DialogContentText>{this.props.microscription.microscriptionDescription}</DialogContentText>
                 {this.props.isDeveloperModal ?
                     <div>

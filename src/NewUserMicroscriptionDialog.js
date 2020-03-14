@@ -39,7 +39,7 @@ class NewUserMicroscriptionDialog extends Component {
         const values = queryString.parse(this.props.location.search);
         console.log('redirect = ' + values.u);
         this.setState({ redirectUrl: values.u });
-        if(values.donation == 'true') {
+        if (values.donation == 'true') {
             console.log('donation enabled');
             this.setState({ donation: true });
         }
@@ -72,20 +72,20 @@ class NewUserMicroscriptionDialog extends Component {
             .then(res => {
                 console.log("res: " + JSON.stringify(res));
                 console.log(res.data);
-                if (res.data == "success" && this.state.redirectUrl == '') {
+                if (res.data == "success" && this.state.redirectUrl == undefined) {
                     this.setState({ show: false });
                     this.props.onCompletion(true);
-                } else if (res.data == "success" && this.state.redirectUrl != '') {
+                } else if (res.data == "success" && this.state.redirectUrl != undefined) {
                     console.log('redirecting to: ' + this.state.redirectUrl);
                     var fullRedirectUrl = this.state.redirectUrl + (this.state.redirectUrl.includes('?') ? '&mcrscrpax=' + this.props.authToken : '?mcrscrpax=' + this.props.authToken);
-                    if(this.state.donation) {
+                    if (this.state.donation) {
                         fullRedirectUrl = fullRedirectUrl + '&donation=true'
                     }
                     window.location.replace(fullRedirectUrl);
-                } else if (res.data == "alreadySubscribed" && this.state.redirectUrl != '') {
+                } else if (res.data == "alreadySubscribed" && this.state.redirectUrl != undefined) {
                     console.log('redirecting to: ' + this.state.redirectUrl);
                     var fullRedirectUrl = this.state.redirectUrl + (this.state.redirectUrl.includes('?') ? '&mcrscrpax=' + this.props.authToken : '?mcrscrpax=' + this.props.authToken);
-                    if(this.state.donation) {
+                    if (this.state.donation) {
                         fullRedirectUrl = fullRedirectUrl + '&donation=true'
                     }
                     window.location.replace(fullRedirectUrl);
@@ -142,62 +142,66 @@ class NewUserMicroscriptionDialog extends Component {
                                 </Col>
                             </Row>
                             <Row >
-                                <Col sm={12} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
-                                    Charged every <strong>{this.state.microscription.billingCycle} days</strong>
-                                </Col>
+                                {this.state.microscription.billingCycle != 0 ?
+                                    <Col sm={12} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
+                                        Charged every <strong>{this.state.microscription.billingCycle} days</strong>
+                                    </Col> :
+                                    <Col sm={12} style={{ padding: '5px', borderStyle: 'solid', borderWidth: '1px' }}>
+                                        Charged <strong>once.</strong>
+                                    </Col>}
                             </Row>
-
+    
                         </Container>
 
 
-                        {/* MOBILE APP LINK
+                            {/* MOBILE APP LINK
                         <p>- OR -</p>
                         <p><a href={"mcrsb://beta?productId=" + this.state.microscription.microscriptionId}>Open in the app</a></p> 
                         */}
 
-                        <DialogActions>
-                            <Button variant="contained"
-                                style={{
-                                    background: "linear-gradient(90deg, #E15392, #349CDE)",
-                                    padding: '15px',
-                                    color: 'white'
-                                }} onClick={this.handleConfirmSubscribe}>Subscribe</Button>
-                            <a href="/" target="_self" style={{ textDecoration: 'none' }}>
+                            <DialogActions>
                                 <Button variant="contained"
                                     style={{
+                                        background: "linear-gradient(90deg, #E15392, #349CDE)",
                                         padding: '15px',
-                                        color: 'black'
-                                    }} onClick={this.handleClose}>Cancel</Button>
-                            </a>
-                        </DialogActions>
+                                        color: 'white'
+                                    }} onClick={this.handleConfirmSubscribe}>Subscribe</Button>
+                                <a href="/" target="_self" style={{ textDecoration: 'none' }}>
+                                    <Button variant="contained"
+                                        style={{
+                                            padding: '15px',
+                                            color: 'black'
+                                        }} onClick={this.handleClose}>Cancel</Button>
+                                </a>
+                            </DialogActions>
                     </div>
                 </Dialog>
-            )
+                    )
         } else if (this.state.show && !this.props.isLoggedIn) {
             return (
                 <Dialog open={this.state.show}
-                    onClose={this.handleDeleteConfirmationClose}
-                >
-                    <div style={modalStyle} className="ModalUnsubscribeConfirmationStyle">
-                        <h3>Please log in.</h3>
-                        <p>Please log in to subscribe to '{this.state.microscription.microscriptionName}'</p>
-                        <p>- OR -</p>
-                        <p><a href={"mcrsb://beta?productId=" + this.state.microscription.microscriptionId}>Open in the app</a></p>
-                        <DialogActions style={{ justifyItems: 'center' }}>
-                            <Button onClick={() => this.ChangeAppScreen('Login')}>Log In</Button>
-                            <Button onClick={this.handleClose}>Cancel</Button>
-                        </DialogActions>
+                        onClose={this.handleDeleteConfirmationClose}
+                    >
+                        <div style={modalStyle} className="ModalUnsubscribeConfirmationStyle">
+                            <h3>Please log in.</h3>
+                            <p>Please log in to subscribe to '{this.state.microscription.microscriptionName}'</p>
+                            <p>- OR -</p>
+                            <p><a href={"mcrsb://beta?productId=" + this.state.microscription.microscriptionId}>Open in the app</a></p>
+                            <DialogActions style={{ justifyItems: 'center' }}>
+                                <Button onClick={() => this.ChangeAppScreen('Login')}>Log In</Button>
+                                <Button onClick={this.handleClose}>Cancel</Button>
+                            </DialogActions>
 
-                    </div>
-                </Dialog>
-            )
+                        </div>
+                    </Dialog>
+                    )
         } else {
             return (
                 <div></div>
-            )
+                    )
+                }
+        
+            }
         }
-
-    }
-}
-
+        
 export default NewUserMicroscriptionDialog
