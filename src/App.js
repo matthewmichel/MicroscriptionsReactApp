@@ -29,7 +29,7 @@ import ForgotPasswordRedirect from './ForgotPasswordRedirect';
 import queryString from 'query-string'
 import ReactGA from 'react-ga';
 // ICONS
-import { MonetizationOnIcon, Email, Person, Lock, Visibility, VisibilityOff, AccountCircle, CropFree, Devices, ArrowForward, LineStyle, Block, FlashOnOutlined } from '@material-ui/icons';
+import { MonetizationOnIcon, Email, Person, Lock, Visibility, VisibilityOff, AccountCircle, CropFree, Devices, ArrowForward, LineStyle, Block, FlashOnOutlined, AddToQueue, AttachMoney } from '@material-ui/icons';
 import {
   BrowserRouter as Router,
   Route,
@@ -89,6 +89,8 @@ class App extends React.Component {
       registrationInvalidEmail: false,
       showForgotPasswordEmailField: false,
       showForgotPasswordSuccessfulEmailSend: false,
+      updateToCreatorInvalidEmailError: false,
+      updateToCreatorInvalidFieldsError: false,
     };
   }
 
@@ -229,7 +231,7 @@ class App extends React.Component {
     console.log("logging out user.")
     this.handleMcrscrpurChange(null);
     this.handleMcrscrpaxChange(null);
-    this.setState({ userData: null, userId: null, loggedIn: false, loading: false });
+    this.setState({ userData: null, userId: null, loggedIn: false, loading: false, isDeveloper: false });
   }
 
   UserMicroscriptionSelected = key => {
@@ -560,7 +562,7 @@ class App extends React.Component {
         {/* IF APPCURRENTSCREEN == MyAccount */}
         {this.state.appCurrentScreen == 'MyAccount' ?
           <body className="App-Body">
-            <div className="App">
+            <div>
               <Grid container direction="row" justify="center" >
                 <Grid item style={{ fontFamily: 'Avenir' }}>
                   <Grid containter direction="column" style={{ borderRightStyle: 'solid', borderRightWidth: '1px', padding: '1em', alignContent: "0px auto" }}>
@@ -730,10 +732,12 @@ class App extends React.Component {
                     }}>
                       {this.state.userData == null ? ('Log In') : ('Log Out')}
                     </Button>
+                    <br /><br />
+                    <Button variant="outlined" onClick={() => { this.setState({ appCurrentScreen: 'Register' }) }}>Don't have an account? Register here.</Button>
                   </Grid>
                   <br /><br />
                   <Grid item>
-                    {this.state.showForgotPasswordEmailField ? <TextField id="forgotPasswordEmail" label="Email Address" /> : <div></div>}
+                    {this.state.showForgotPasswordEmailField ? <div><TextField id="forgotPasswordEmail" label="Email Address" /><br /></div> : <div></div>}
                     <Button onClick={() => {
                       if (this.state.showForgotPasswordEmailField) {
                         axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/user/forgotmypassword?em=` + document.getElementById('forgotPasswordEmail').value, {})
@@ -754,8 +758,8 @@ class App extends React.Component {
 
             : this.state.appCurrentScreen == 'Home' ?
               // IF CURRENTSCREEN == Home
-              <div className="HomePageBackground">
-                <Grid container style={{ alignItems: 'center', margin: 'auto' }} justify="center">
+              <div >
+                <Grid container style={{ alignItems: 'center', margin: 'auto' }} className="GradientBackground" justify="center">
                   <Grid item>
                     <img src={logo} className="App-Logo" alt="logo" />
                     <h2 className="TaglineStyle">
@@ -778,7 +782,7 @@ class App extends React.Component {
                     <img src={dualiPhoneImage} style={{ width: '90vh', height: "auto" }} />
                   </Grid>
                 </Grid>
-                <Grid container justify="center" direction="column">
+                <Grid container justify="center" direction="column" className="GradientBackground">
                   <Grid item>
                     <h3 style={{ fontFamily: 'Avenir', color: 'white' }}>Support your favorite products and content by Microscribing.</h3>
                     <p style={{ fontFamily: 'Avenir', color: 'white' }}>Microscriptions are extremely small subscriptions that allow product developers and content creators to start earning revenue from what they've created.</p>
@@ -930,9 +934,89 @@ class App extends React.Component {
 
                 : this.state.appCurrentScreen == 'Creator' && this.state.isDeveloper == false ?
                   // IF CURRENTSCREEN == Login && User is not a creator
-                  <div>
-                    <h1 className="BottomPadding">Become a Microscriptions Creator!</h1>
-                    <h4>Build your own microscriptions, and find new ways for your business to generate revenue.</h4>
+                  <div style={{ fontFamily: 'Avenir', color: 'white' }} className="GradientBackground">
+                    <h1>Become a Microscriptions Creator!</h1>
+                    <h3>Build your own Microscriptions, and find new ways for your business to generate revenue.</h3>
+                    <br />
+                    <p>Creating Microscriptions is super simple, and you can start generating revenue immediatley.</p>
+                    <Grid container direction="row" style={{ color: 'white', paddingTop: '3em', paddingLeft: '5em', paddingRight: '5em' }} alignItems="baseline" justify="center">
+                      <Grid item style={{ padding: "2em" }}>
+                        <AddToQueue />
+                        <br />
+                        <h3>Step 1</h3>
+                        <h3>Create Microscription</h3>
+                      </Grid>
+                      <Grid item>
+                        <br />
+                        <h2><ArrowForward /></h2>
+                      </Grid>
+                      <Grid item style={{ padding: "2em" }}>
+                        <Devices />
+                        <br />
+                        <h3>Step 2</h3>
+                        <h3>Link your content to your Microscriptions.</h3>
+                      </Grid>
+                      <Grid item>
+                        <br />
+                        <h2><ArrowForward /></h2>
+                      </Grid>
+                      <Grid item style={{ padding: "2em" }}>
+                        <AttachMoney />
+                        <br />
+                        <h3>Step 3</h3>
+                        <h3>Generate revenue!</h3>
+                      </Grid>
+                    </Grid>
+                    <br /><br />
+                    {this.state.loggedIn ?
+                      <div>
+                        <Paper style={{ width: '75%', padding: '2em', backgroundColor: 'rgb(255,255,255,85%)', margin: 'auto' }}>
+                          <h3>Fill out the form below to become a Creator.</h3>
+                          <br />
+                          <TextField variant="outlined" label="PayPal Email Address" id="creatorRegistrationPayPalEmail" placeholder="youremail@example.com" style={{ width: '300px' }}/>
+                          <br /><p>This email should be connected to a PayPal account. This is how we will pay out the revenue you generate from your Microscriptions.</p>
+                          <br />{this.state.updateToCreatorInvalidEmailError ? <p style={{color: 'red'}}>Please enter a valid email address.</p> : <div></div>}<br />
+                          <TextField variant="outlined" label="Content Name" id="creatorContentName" style={{ width: '300px' }} />
+                          <br /><p>This is the name of your business, blog, company, etc.</p>
+                          <br /><br />
+                          <TextField variant="outlined" label="Content Location" id="creatorContentLocation" placeholder="example.com" style={{ width: '300px' }} />
+                          <br /><p>This is where your user's find your content/products. This is typically a website.</p>
+                          <br /><br />
+                          <TextField variant="outlined" label="Brief Description" id="creatorBriefDescription" multiline rows="4" style={{ width: '300px' }} />
+                          <br /><p>Give us a brief description of what kind of content you create or what kind of products you sell. We'd love to get to know a little more about you.</p>
+                          <br />{this.state.updateToCreatorInvalidFieldsError ? <p style={{color: 'red'}}>Please fill out all the fields.</p> : <div></div>}<br />
+                          <Button onClick={() => {
+                            if(validator.validate(document.getElementById('creatorRegistrationPayPalEmail').value)) {
+                              if(document.getElementById('creatorContentName').value != '' && document.getElementById('creatorContentLocation').value != '' && document.getElementById('creatorBriefDescription').value != '') {
+                                axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/user/updatetocreator?uid=` + this.state.userId + `&token=` + this.state.authToken + `&ppe=` + document.getElementById('creatorRegistrationPayPalEmail').value + `&cn=` + document.getElementById('creatorContentName').value + `&cl=` + document.getElementById('creatorContentLocation').value + `&bd=` + document.getElementById('creatorBriefDescription').value, {})
+                                .then(res => {
+                                  if(res.data == 'success') {
+                                    this.getUserInformation(this.state.userId);
+                                  }
+                                })
+                              } else {
+                                // all fields must be filled out
+                                this.setState({ updateToCreatorInvalidFieldsError: true });
+                              }
+                            } else {
+                              // invalid email address
+                              this.setState({ updateToCreatorInvalidEmailError: true });
+                            }
+                          }}
+                            style={{
+                              background: "linear-gradient(90deg, #E15392, #349CDE)",
+                              paddingLeft: '3em',
+                              paddingRight: '3em',
+                              color: 'white',
+
+                            }}><p style={{ fontFamily: 'Avenir' }}>Become a Creator!</p></Button>
+                        </Paper>
+                      </div>
+                      : <Button variant="outlined" onClick={() => {
+                        this.setState({ appCurrentScreen: 'Login' })
+                      }} style={{ fontFamily: 'Avenir', color: 'white', margin: 'auto, 0px' }}>
+                        <h2>Log in to get started.</h2>
+                      </Button>}
                   </div>
 
                   : this.state.appCurrentScreen == 'AddCredit' ?
@@ -1052,166 +1136,167 @@ class App extends React.Component {
 
                       : this.state.appCurrentScreen == 'Register' ?
                         // IF CURRENTSCREEN == 'Register'
-                        <div className="largePadding" style={{ fontFamily: 'Avenir' }}>
-                          <h1>Create Your Account</h1>
-                          <h4>Create your account to start subscribing to your digital content.</h4>
-                          <TextField
-                            id="registrationEmail"
-                            className="RegistrationField"
-                            label="Email"
-                            InputProps={{
-                              startAdornment: (
-                                <InputAdornment position="start">
-                                  <Email />
-                                </InputAdornment>
-                              ),
-                            }}
-                          /><br /><br />
-                          <TextField
-                            id="registrationUsername"
-                            className="RegistrationField"
-                            label="Username"
-                            InputProps={{
-                              startAdornment: (
-                                <InputAdornment position="start">
-                                  <AccountCircle />
-                                </InputAdornment>
-                              ),
-                            }}
-                          />
-                          {this.state.registrationUsernameInUse ? <p style={{ color: 'red' }}>This username is taken.</p> : <div></div>}
-                          <br /><br />
-                          <TextField
-                            id="registrationFirstName"
-                            className="RegistrationField"
-                            label="First Name"
-                            InputProps={{
-                              startAdornment: (
-                                <InputAdornment position="start">
-                                  <Person />
-                                </InputAdornment>
-                              ),
-                            }}
-                          /><br /><br />
-                          <TextField
-                            id="registrationLastName"
-                            label="Last Name"
-                            className="RegistrationField"
-                            InputProps={{
-                              startAdornment: (
-                                <InputAdornment position="start">
-                                  <Person />
-                                </InputAdornment>
-                              ),
-                            }}
-                          /><br /><br />
-                          <TextField
-                            id="registrationPassword"
-                            className="RegistrationField"
-                            type={this.state.showRegistrationPassword1 ? 'text' : 'password'}
-                            label="Password"
-                            InputProps={{
-                              startAdornment: (
-                                <InputAdornment position="start">
-                                  <Lock />
-                                </InputAdornment>
-                              ),
-                              endAdornment: (
-                                <InputAdornment position="end">
-                                  <IconButton onClick={() => this.state.showRegistrationPassword1 ? this.setState({ showRegistrationPassword1: false }) : this.setState({ showRegistrationPassword1: true })}>
-                                    {this.state.showRegistrationPassword1 ? <Visibility /> : <VisibilityOff />}
-                                  </IconButton>
-                                </InputAdornment>
-                              ),
-                            }}
-                          /><br /><br />
-                          <TextField
-                            id="registrationPasswordAgain"
-                            className="RegistrationField"
-                            type={this.state.showRegistrationPassword2 ? 'text' : 'password'}
-                            label="Repeat Password"
-                            InputProps={{
-                              startAdornment: (
-                                <InputAdornment position="start">
-                                  <Lock />
-                                </InputAdornment>
-                              ),
-                              endAdornment: (
-                                <InputAdornment position="end">
-                                  <IconButton onClick={() => this.state.showRegistrationPassword2 ? this.setState({ showRegistrationPassword2: false }) : this.setState({ showRegistrationPassword2: true })}>
-                                    {this.state.showRegistrationPassword2 ? <Visibility /> : <VisibilityOff />}
-                                  </IconButton>
-                                </InputAdornment>
-                              ),
-                            }}
-                          /><br /><br />
+                        <div style={{ fontFamily: 'Avenir' }}>
+                          <Paper style={{ width: '75%', padding: '2em', backgroundColor: 'rgb(255,255,255,85%)', margin: 'auto' }}>
+                            <h1>Create Your Account</h1>
+                            <h4>Create your account to start subscribing to your digital content.</h4>
+                            <TextField
+                              id="registrationEmail"
+                              className="RegistrationField"
+                              label="Email"
+                              InputProps={{
+                                startAdornment: (
+                                  <InputAdornment position="start">
+                                    <Email />
+                                  </InputAdornment>
+                                ),
+                              }}
+                            /><br /><br />
+                            <TextField
+                              id="registrationUsername"
+                              className="RegistrationField"
+                              label="Username"
+                              InputProps={{
+                                startAdornment: (
+                                  <InputAdornment position="start">
+                                    <AccountCircle />
+                                  </InputAdornment>
+                                ),
+                              }}
+                            />
+                            {this.state.registrationUsernameInUse ? <p style={{ color: 'red' }}>This username is taken.</p> : <div></div>}
+                            <br /><br />
+                            <TextField
+                              id="registrationFirstName"
+                              className="RegistrationField"
+                              label="First Name"
+                              InputProps={{
+                                startAdornment: (
+                                  <InputAdornment position="start">
+                                    <Person />
+                                  </InputAdornment>
+                                ),
+                              }}
+                            /><br /><br />
+                            <TextField
+                              id="registrationLastName"
+                              label="Last Name"
+                              className="RegistrationField"
+                              InputProps={{
+                                startAdornment: (
+                                  <InputAdornment position="start">
+                                    <Person />
+                                  </InputAdornment>
+                                ),
+                              }}
+                            /><br /><br />
+                            <TextField
+                              id="registrationPassword"
+                              className="RegistrationField"
+                              type={this.state.showRegistrationPassword1 ? 'text' : 'password'}
+                              label="Password"
+                              InputProps={{
+                                startAdornment: (
+                                  <InputAdornment position="start">
+                                    <Lock />
+                                  </InputAdornment>
+                                ),
+                                endAdornment: (
+                                  <InputAdornment position="end">
+                                    <IconButton onClick={() => this.state.showRegistrationPassword1 ? this.setState({ showRegistrationPassword1: false }) : this.setState({ showRegistrationPassword1: true })}>
+                                      {this.state.showRegistrationPassword1 ? <Visibility /> : <VisibilityOff />}
+                                    </IconButton>
+                                  </InputAdornment>
+                                ),
+                              }}
+                            /><br /><br />
+                            <TextField
+                              id="registrationPasswordAgain"
+                              className="RegistrationField"
+                              type={this.state.showRegistrationPassword2 ? 'text' : 'password'}
+                              label="Repeat Password"
+                              InputProps={{
+                                startAdornment: (
+                                  <InputAdornment position="start">
+                                    <Lock />
+                                  </InputAdornment>
+                                ),
+                                endAdornment: (
+                                  <InputAdornment position="end">
+                                    <IconButton onClick={() => this.state.showRegistrationPassword2 ? this.setState({ showRegistrationPassword2: false }) : this.setState({ showRegistrationPassword2: true })}>
+                                      {this.state.showRegistrationPassword2 ? <Visibility /> : <VisibilityOff />}
+                                    </IconButton>
+                                  </InputAdornment>
+                                ),
+                              }}
+                            /><br /><br />
 
-                          <Checkbox
-                            checked={this.state.registrationTaCChecked}
-                            onChange={this.handleRegistrationCheckbox}
-                            value="primary" />
-                          I have read and accept the <a href="http://microscriptions.com/TaC.html" target="_blank">Terms and Conditions</a>.
+                            <Checkbox
+                              checked={this.state.registrationTaCChecked}
+                              onChange={this.handleRegistrationCheckbox}
+                              value="primary" />
+                            I have read and accept the <a href="http://microscriptions.com/TaC.html" target="_blank">Terms and Conditions</a>.
 
                             <br /><br />
 
-                          {this.state.registrationTaCChecked ?
-                            <Button
-                              onClick={() => {
-                                if (validator.validate(document.getElementById('registrationEmail').value)) {
-                                  this.setState({ registrationInvalidEmail: false });
-                                } else {
-                                  this.setState({ registrationInvalidEmail: true });
-                                  console.log('invalid email');
-                                }
+                            {this.state.registrationTaCChecked ?
+                              <Button
+                                onClick={() => {
+                                  if (validator.validate(document.getElementById('registrationEmail').value)) {
+                                    this.setState({ registrationInvalidEmail: false });
+                                  } else {
+                                    this.setState({ registrationInvalidEmail: true });
+                                    console.log('invalid email');
+                                  }
 
-                                axios.get('https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/user/checkusername?username=' + document.getElementById('registrationUsername').value, {})
-                                  .then(res => {
-                                    console.log(res.data.count);
-                                    if (Number(res.data) == 0) {
-                                      if (document.getElementById('registrationPassword').value == document.getElementById('registrationPasswordAgain').value
-                                        && document.getElementById('registrationEmail').value != ""
-                                        && document.getElementById('registrationFirstName').value != ""
-                                        && document.getElementById('registrationLastName').value != ""
-                                        && document.getElementById('registrationUsername').value != "") {
-                                        // axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/microscription/insertnewuser?email=` + document.getElementById('registrationEmail').value
-                                        //   + `&mcrscrpusn=` + document.getElementById('registrationUsername').value
-                                        //   + `&mcrscrppx=` + encodeURIComponent(document.getElementById('registrationPassword').value)
-                                        //   + `&firstname=` + document.getElementById('registrationFirstName').value
-                                        //   + `&lastname=` + document.getElementById('registrationLastName').value
-                                        //   , {})
-                                        //   .then(res => {
-                                        //     console.log(res);
-                                        //     console.log(res.data);
-                                        //     if (res.status == 200) {
-                                        //       this.setState({ appCurrentScreen: 'Login' });
-                                        //     }
-                                        //   })
+                                  axios.get('https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/user/checkusername?username=' + document.getElementById('registrationUsername').value, {})
+                                    .then(res => {
+                                      console.log(res.data.count);
+                                      if (Number(res.data) == 0) {
+                                        if (document.getElementById('registrationPassword').value == document.getElementById('registrationPasswordAgain').value
+                                          && document.getElementById('registrationEmail').value != ""
+                                          && document.getElementById('registrationFirstName').value != ""
+                                          && document.getElementById('registrationLastName').value != ""
+                                          && document.getElementById('registrationUsername').value != "") {
+                                          // axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/microscription/insertnewuser?email=` + document.getElementById('registrationEmail').value
+                                          //   + `&mcrscrpusn=` + document.getElementById('registrationUsername').value
+                                          //   + `&mcrscrppx=` + encodeURIComponent(document.getElementById('registrationPassword').value)
+                                          //   + `&firstname=` + document.getElementById('registrationFirstName').value
+                                          //   + `&lastname=` + document.getElementById('registrationLastName').value
+                                          //   , {})
+                                          //   .then(res => {
+                                          //     console.log(res);
+                                          //     console.log(res.data);
+                                          //     if (res.status == 200) {
+                                          //       this.setState({ appCurrentScreen: 'Login' });
+                                          //     }
+                                          //   })
+                                        }
+                                      } else if (Number(res.data.count) > 0) {
+                                        this.setState({ registrationUsernameInUse: true })
                                       }
-                                    } else if (Number(res.data.count) > 0) {
-                                      this.setState({ registrationUsernameInUse: true })
-                                    }
-                                  })
-                              }}
-                              style={{
-                                background: "linear-gradient(90deg, #E15392, #349CDE)",
-                                paddingLeft: '3em',
-                                paddingRight: '3em',
-                                color: 'white'
-                              }}><p style={{ fontFamily: 'Avenir' }}>Register</p></Button>
-                            :
-                            <Button
-                              disabled
-                              style={{
-                                background: "linear-gradient(90deg, #E15392, #349CDE)",
-                                paddingLeft: '3em',
-                                paddingRight: '3em',
-                                color: 'white',
-                                opacity: '60%'
+                                    })
+                                }}
+                                style={{
+                                  background: "linear-gradient(90deg, #E15392, #349CDE)",
+                                  paddingLeft: '3em',
+                                  paddingRight: '3em',
+                                  color: 'white'
+                                }}><p style={{ fontFamily: 'Avenir' }}>Register</p></Button>
+                              :
+                              <Button
+                                disabled
+                                style={{
+                                  background: "linear-gradient(90deg, #E15392, #349CDE)",
+                                  paddingLeft: '3em',
+                                  paddingRight: '3em',
+                                  color: 'white',
+                                  opacity: '60%'
 
-                              }}><p style={{ fontFamily: 'Avenir' }}>Register</p></Button>
+                                }}><p style={{ fontFamily: 'Avenir' }}>Register</p></Button>
 
-                          }
-
+                            }
+                          </Paper>
                         </div>
 
                         : this.state.appCurrentScreen == 'Contact' ?

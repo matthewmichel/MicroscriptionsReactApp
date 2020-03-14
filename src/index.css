@@ -14,6 +14,10 @@ code {
 }
 
 .masterDiv {
-  background-color: white;
+  background-color: linear-gradient(90deg, #E15392 0%, #349CDE 100%);
   height: 100vh;
+}
+
+#root {
+  background: linear-gradient(90deg, #E15392 0%, #349CDE 100%);
 }

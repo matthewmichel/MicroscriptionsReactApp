@@ -72,6 +72,11 @@
   height: 130vh;
 }
 
+.GradientBackground {
+  background: linear-gradient(90deg, #E15392 0%, #349CDE 100%);
+  height: auto;
+}
+
 .App .PaymentSliderStyle {
   padding-bottom: 5em;
   padding-top: 4em;
