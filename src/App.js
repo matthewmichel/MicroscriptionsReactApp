@@ -92,6 +92,7 @@ class App extends React.Component {
       showForgotPasswordSuccessfulEmailSend: false,
       updateToCreatorInvalidEmailError: false,
       updateToCreatorInvalidFieldsError: false,
+      registrationEmailValid: false,
     };
   }
 
@@ -310,6 +311,14 @@ class App extends React.Component {
       this.checkUserCredentials();
     }
   };
+
+  onKeyDownEmailValidatorRegistration = emailElementId => {
+    if(validator.validate(document.getElementById('registrationEmail').value)) {
+      this.setState({ registrationEmailValid: true });
+    } else {
+      this.setState({ registrationEmailValid: false });
+    }
+  }
 
   handleRegistrationCheckbox = event => {
     this.setState({ registrationTaCChecked: event.target.checked });
@@ -811,12 +820,12 @@ class App extends React.Component {
                       {this.state.userData == null ? ('Log In') : ('Log Out')}
                     </Button>
                     <br /><br />
-                    <Button variant="outlined" onClick={() => { this.setState({ appCurrentScreen: 'Register' }) }}>Don't have an account? Register here.</Button>
+                    {!this.state.loggedIn ? <Button variant="outlined" onClick={() => { this.setState({ appCurrentScreen: 'Register' }) }}>Don't have an account? Register here.</Button> : <div></div>}
                   </Grid>
                   <br /><br />
                   <Grid item>
                     {this.state.showForgotPasswordEmailField ? <div><TextField id="forgotPasswordEmail" label="Email Address" /><br /></div> : <div></div>}
-                    <Button onClick={() => {
+                    {!this.state.loggedIn ? <Button onClick={() => {
                       if (this.state.showForgotPasswordEmailField) {
                         axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/user/forgotmypassword?em=` + document.getElementById('forgotPasswordEmail').value, {})
                           .then(res => {
@@ -827,7 +836,7 @@ class App extends React.Component {
                       } else {
                         this.setState({ showForgotPasswordEmailField: true });
                       }
-                    }}>{this.state.showForgotPasswordEmailField ? 'Request Password Reset' : 'Forgot my Password'}</Button>
+                    }}>{this.state.showForgotPasswordEmailField ? 'Request Password Reset' : 'Forgot my Password'}</Button> : <div></div>}
                     {this.state.showForgotPasswordSuccessfulEmailSend ? <p style={{ color: 'red' }} >An email has been sent to reset your password.</p> : <div></div>}
                   </Grid>
                 </Grid>
@@ -1225,10 +1234,11 @@ class App extends React.Component {
                               InputProps={{
                                 startAdornment: (
                                   <InputAdornment position="start">
-                                    <Email />
+                                    {this.state.registrationEmailValid ? <Email style={{ color: 'green' }}/> : <Email />}
                                   </InputAdornment>
                                 ),
                               }}
+                              onKeyDown={this.onKeyDownEmailValidatorRegistration}
                             /><br /><br />
                             <TextField
                               id="registrationUsername"
