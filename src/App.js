@@ -8,17 +8,12 @@ import Button from '@material-ui/core/Button';
 import axios from 'axios';
 import { Grid, Paper, Icon, InputAdornment, IconButton, Divider, Card, CardContent, Snackbar, Tooltip, DialogActions, Backdrop, Checkbox } from '@material-ui/core'
 import MuiAlert from '@material-ui/lab/Alert';
-import { withStyles } from '@material-ui/core/styles';
-import GridList from '@material-ui/core/GridList';
-import GridListTile from '@material-ui/core/GridListTile';
-import GridListTileBar from '@material-ui/core/GridListTileBar';
 import { DialogContentText, emphasize, Slider } from '@material-ui/core';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DetailedUserMicroscriptionDialog from './DetailedUserMicroscriptionDialog'
 import LoginRedirectDialog from './LoginRedirectDialog';
 import MainMenu from './MainMenu'
-import { border } from '@material-ui/system';
 import AddNewMicroscriptionDialog from './AddNewMicroscriptionDialog'
 import { instanceOf } from 'prop-types';
 import { withCookies, Cookies } from 'react-cookie';
@@ -30,14 +25,11 @@ import { Container, Row, Col } from 'react-grid-system';
 import { ScaleLoader } from 'react-spinners';
 import { Chart } from '@bit/primefaces.primereact.chart';
 import validator from 'email-validator';
-
-
-
+import ForgotPasswordRedirect from './ForgotPasswordRedirect';
+import queryString from 'query-string'
 import ReactGA from 'react-ga';
-
 // ICONS
 import { MonetizationOnIcon, Email, Person, Lock, Visibility, VisibilityOff, AccountCircle, CropFree, Devices, ArrowForward, LineStyle, Block, FlashOnOutlined } from '@material-ui/icons';
-
 import {
   BrowserRouter as Router,
   Route,
@@ -95,6 +87,8 @@ class App extends React.Component {
       registrationUsernameInUse: false,
       registrationInvalidPasswords: false,
       registrationInvalidEmail: false,
+      showForgotPasswordEmailField: false,
+      showForgotPasswordSuccessfulEmailSend: false,
     };
   }
 
@@ -373,6 +367,8 @@ class App extends React.Component {
     //console.log('id key ' +  cookies.get('mcrscrpur'));
     //console.log('ax key ' +  cookies.get('mcrscrpax'));
 
+
+
     if (cookies.get('mcrscrpur') != null && cookies.get('mcrscrpax') != null) {
       //console.log('keys found. ' + cookies.get('mcrscrpur') + ' ' + cookies.get('mcrscrpax'))
       axios.get(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/microscription/getuserdetailsbyuserid?userid=` + cookies.get('mcrscrpur') + `&token=` + cookies.get('mcrscrpax'))
@@ -512,6 +508,7 @@ class App extends React.Component {
         <header className="App-header">
           <Route exact path={"/microscription"} render={props => <NewUserMicroscriptionDialog {...props} loadingCallback={this.CallbackChangeLoadingValue} onCompletion={this.CallbackAddNewUserMicroscriptionComplete} userId={this.state.userId} isLoggedIn={this.state.loggedIn} setAppScreen={this.CallbackSetAppScreen} setAddNewMicroscriptionId={this.CallbackAddNewMicroscriptionId} setShowNewUserMicroscriptionDialogAfterLogin={this.CallbackShowNewUserMicroscriptionDialogAfterLogin} authToken={this.state.authToken} />} />
           <Route exact path={"/redirecturl"} render={props => <LoginRedirectDialog {...props} showDialog={true} />} />
+          <Route exact path={"/passwordreset"} render={props => <ForgotPasswordRedirect {...props} setAppScreen={this.CallbackSetAppScreen} />} />
         </header>
 
         <CookieConsent location="bottom" buttonText="I Understand." expires={150} style={{ width: '70%', marginLeft: '15%' }} buttonStyle={{ alignContent: "center" }}>
@@ -733,6 +730,23 @@ class App extends React.Component {
                     }}>
                       {this.state.userData == null ? ('Log In') : ('Log Out')}
                     </Button>
+                  </Grid>
+                  <br /><br />
+                  <Grid item>
+                    {this.state.showForgotPasswordEmailField ? <TextField id="forgotPasswordEmail" label="Email Address" /> : <div></div>}
+                    <Button onClick={() => {
+                      if (this.state.showForgotPasswordEmailField) {
+                        axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/user/forgotmypassword?em=` + document.getElementById('forgotPasswordEmail').value, {})
+                          .then(res => {
+                            if (res.data == 'success') {
+                              this.setState({ showForgotPasswordSuccessfulEmailSend: true, showForgotPasswordEmailField: false });
+                            }
+                          })
+                      } else {
+                        this.setState({ showForgotPasswordEmailField: true });
+                      }
+                    }}>{this.state.showForgotPasswordEmailField ? 'Request Password Reset' : 'Forgot my Password'}</Button>
+                    {this.state.showForgotPasswordSuccessfulEmailSend ? <p style={{ color: 'red' }} >An email has been sent to reset your password.</p> : <div></div>}
                   </Grid>
                 </Grid>
               </Paper>
@@ -1143,7 +1157,7 @@ class App extends React.Component {
                           {this.state.registrationTaCChecked ?
                             <Button
                               onClick={() => {
-                                if(validator.validate(document.getElementById('registrationEmail').value)) {
+                                if (validator.validate(document.getElementById('registrationEmail').value)) {
                                   this.setState({ registrationInvalidEmail: false });
                                 } else {
                                   this.setState({ registrationInvalidEmail: true });
@@ -1212,8 +1226,18 @@ class App extends React.Component {
                             Or email us at <a href="mailto:contact@microscriptions.com" target="_blank">contact@microscriptions.com</a>.
                         </div>
 
-                          :
-                          (<div></div>)
+                          : this.state.appCurrentScreen == 'ForgotPassword' ?
+                            // IF CURRENTSCREEN == 'Register'
+                            <div style={{ fontFamily: 'Avenir', width: '80%', marginLeft: '10%' }}>
+                              <h1>Password Reset</h1>
+
+                              <p style={{ fontSize: '20px' }}>Please enter your email below, and we will email you a link to reset your password.</p>
+
+                              <TextField placeholder="your-email@example.com" label="Email" id="passwordResetEmail" />
+                            </div>
+
+                            :
+                            (<div></div>)
 
         }
       </div>
