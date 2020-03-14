@@ -93,6 +93,7 @@ class App extends React.Component {
       updateToCreatorInvalidEmailError: false,
       updateToCreatorInvalidFieldsError: false,
       registrationEmailValid: false,
+      registrationFieldsIncomplete: false,
     };
   }
 
@@ -313,7 +314,7 @@ class App extends React.Component {
   };
 
   onKeyDownEmailValidatorRegistration = emailElementId => {
-    if(validator.validate(document.getElementById('registrationEmail').value)) {
+    if (validator.validate(document.getElementById('registrationEmail').value)) {
       this.setState({ registrationEmailValid: true });
     } else {
       this.setState({ registrationEmailValid: false });
@@ -1234,7 +1235,7 @@ class App extends React.Component {
                               InputProps={{
                                 startAdornment: (
                                   <InputAdornment position="start">
-                                    {this.state.registrationEmailValid ? <Email style={{ color: 'green' }}/> : <Email />}
+                                    {this.state.registrationEmailValid ? <Email style={{ color: 'green' }} /> : this.state.registrationInvalidEmail ? <Email style={{ color: 'red' }} /> : <Email />}
                                   </InputAdornment>
                                 ),
                               }}
@@ -1297,7 +1298,8 @@ class App extends React.Component {
                                   </InputAdornment>
                                 ),
                               }}
-                            /><br /><br />
+                            />
+                            <br />{this.state.registrationInvalidPasswords ? <p style={{ color: 'red' }}>Passwords must match and be at least 8 characters.</p> : <div></div>}<br />
                             <TextField
                               id="registrationPasswordAgain"
                               className="RegistrationField"
@@ -1325,45 +1327,47 @@ class App extends React.Component {
                               value="primary" />
                             I have read and accept the <a href="http://microscriptions.com/TaC.html" target="_blank">Terms and Conditions</a>.
 
-                            <br /><br />
+                            <br />{this.state.registrationFieldsIncomplete ? <p style={{ color: 'red' }}>You must fill out all the fields in the form.</p> : <div></div>}<br />
 
                             {this.state.registrationTaCChecked ?
                               <Button
                                 onClick={() => {
                                   if (validator.validate(document.getElementById('registrationEmail').value)) {
                                     this.setState({ registrationInvalidEmail: false });
+                                    // Check if username is already in use
+                                    axios.get('https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/user/checkusername?username=' + document.getElementById('registrationUsername').value, {})
+                                      .then(res => {
+                                        console.log(res.data.count);
+                                        if (Number(res.data) == 0) {
+                                          if (document.getElementById('registrationPassword').value == document.getElementById('registrationPasswordAgain').value && document.getElementById('registrationPassword').value.length >= 8) {
+                                            if (document.getElementById('registrationFirstName').value != '' && document.getElementById('registrationFirstName').value != '') {
+                                              axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/microscription/insertnewuser?email=` + document.getElementById('registrationEmail').value
+                                                + `&mcrscrpusn=` + document.getElementById('registrationUsername').value
+                                                + `&mcrscrppx=` + encodeURIComponent(document.getElementById('registrationPassword').value)
+                                                + `&firstname=` + document.getElementById('registrationFirstName').value
+                                                + `&lastname=` + document.getElementById('registrationLastName').value
+                                                , {})
+                                                .then(res => {
+                                                  console.log(res);
+                                                  console.log(res.data);
+                                                  if (res.status == 200) {
+                                                    this.setState({ appCurrentScreen: 'Login' });
+                                                  }
+                                                })
+                                            } else {
+                                              this.setState({ registrationFieldsIncomplete: true });
+                                            }
+                                          } else {
+                                            this.setState({ registrationInvalidPasswords: true })
+                                          }
+                                        } else if (Number(res.data.count) > 0) {
+                                          this.setState({ registrationUsernameInUse: true })
+                                        }
+                                      })
                                   } else {
                                     this.setState({ registrationInvalidEmail: true });
                                     console.log('invalid email');
                                   }
-
-                                  axios.get('https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/user/checkusername?username=' + document.getElementById('registrationUsername').value, {})
-                                    .then(res => {
-                                      console.log(res.data.count);
-                                      if (Number(res.data) == 0) {
-                                        if (document.getElementById('registrationPassword').value == document.getElementById('registrationPasswordAgain').value
-                                          && document.getElementById('registrationEmail').value != ""
-                                          && document.getElementById('registrationFirstName').value != ""
-                                          && document.getElementById('registrationLastName').value != ""
-                                          && document.getElementById('registrationUsername').value != "") {
-                                          // axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/microscription/insertnewuser?email=` + document.getElementById('registrationEmail').value
-                                          //   + `&mcrscrpusn=` + document.getElementById('registrationUsername').value
-                                          //   + `&mcrscrppx=` + encodeURIComponent(document.getElementById('registrationPassword').value)
-                                          //   + `&firstname=` + document.getElementById('registrationFirstName').value
-                                          //   + `&lastname=` + document.getElementById('registrationLastName').value
-                                          //   , {})
-                                          //   .then(res => {
-                                          //     console.log(res);
-                                          //     console.log(res.data);
-                                          //     if (res.status == 200) {
-                                          //       this.setState({ appCurrentScreen: 'Login' });
-                                          //     }
-                                          //   })
-                                        }
-                                      } else if (Number(res.data.count) > 0) {
-                                        this.setState({ registrationUsernameInUse: true })
-                                      }
-                                    })
                                 }}
                                 style={{
                                   background: "linear-gradient(90deg, #E15392, #349CDE)",
