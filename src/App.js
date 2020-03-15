@@ -94,6 +94,7 @@ class App extends React.Component {
       updateToCreatorInvalidFieldsError: false,
       registrationEmailValid: false,
       registrationFieldsIncomplete: false,
+      registrationEmailInUse: false,
     };
   }
 
@@ -1076,10 +1077,13 @@ class App extends React.Component {
                           <Button onClick={() => {
                             if (validator.validate(document.getElementById('creatorRegistrationPayPalEmail').value)) {
                               if (document.getElementById('creatorContentName').value != '' && document.getElementById('creatorContentLocation').value != '' && document.getElementById('creatorBriefDescription').value != '') {
+                                this.setState({ loading: true });
                                 axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/user/updatetocreator?uid=` + this.state.userId + `&token=` + this.state.authToken + `&ppe=` + document.getElementById('creatorRegistrationPayPalEmail').value + `&cn=` + document.getElementById('creatorContentName').value + `&cl=` + document.getElementById('creatorContentLocation').value + `&bd=` + document.getElementById('creatorBriefDescription').value, {})
                                   .then(res => {
+                                    this.setState({ loading: false });
                                     if (res.data == 'success') {
                                       this.getUserInformation(this.state.userId);
+                                      this.setState({ appCurrentScreen: 'Creator' });
                                     }
                                   })
                               } else {
@@ -1240,7 +1244,7 @@ class App extends React.Component {
                                 ),
                               }}
                               onKeyDown={this.onKeyDownEmailValidatorRegistration}
-                            /><br /><br />
+                            /><br />{this.state.registrationEmailInUse ? <p style={{ color: 'red' }}>This email is already being used.</p> : <div></div>}<br />
                             <TextField
                               id="registrationUsername"
                               className="RegistrationField"
@@ -1332,15 +1336,31 @@ class App extends React.Component {
                             {this.state.registrationTaCChecked ?
                               <Button
                                 onClick={() => {
-                                  if (validator.validate(document.getElementById('registrationEmail').value)) {
+                                  // Begin UI Validation
+                                  var newPassword = document.getElementById('registrationPassword').value
+                                  if(!validator.validate(document.getElementById('registrationEmail').value)) {
+                                    this.setState({ registrationInvalidEmail: true });
+                                  }
+                                  if(document.getElementById('registrationFirstName').value == '' || document.getElementById('registrationLastName').value == '') {
+                                    this.setState({ registrationFieldsIncomplete: true });
+                                  }
+                                  if(document.getElementById('registrationPassword').value == document.getElementById('registrationPasswordAgain').value || newPassword.length < 8) {
+                                    this.setState({ registrationInvalidPasswords: true });
+                                  }
+
+                                  if (validator.validate(document.getElementById('registrationEmail').value) && document.getElementById('registrationUsername').value != '') {
                                     this.setState({ registrationInvalidEmail: false });
                                     // Check if username is already in use
-                                    axios.get('https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/user/checkusername?username=' + document.getElementById('registrationUsername').value, {})
+                                    this.setState({ loading: true });
+                                    axios.get('https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/user/checkusername?username=' + document.getElementById('registrationUsername').value + '&email=' + document.getElementById('registrationEmail').value, {})
                                       .then(res => {
-                                        console.log(res.data.count);
-                                        if (Number(res.data) == 0) {
+                                        this.setState({ loading: false });
+                                        console.log(res.data);
+                                        if (res.data != 'usedUsername' && res.data != 'usedEmail' && res.data != 'usedUsernameEmail') {
+                                          this.setState({ registrationEmailInUse: false, registrationUsernameInUse: false });
                                           if (document.getElementById('registrationPassword').value == document.getElementById('registrationPasswordAgain').value && document.getElementById('registrationPassword').value.length >= 8) {
                                             if (document.getElementById('registrationFirstName').value != '' && document.getElementById('registrationFirstName').value != '') {
+                                              this.setState({ loading: true });
                                               axios.post(`https://cmjt0injr2.execute-api.us-east-2.amazonaws.com/100/microscription/insertnewuser?email=` + document.getElementById('registrationEmail').value
                                                 + `&mcrscrpusn=` + document.getElementById('registrationUsername').value
                                                 + `&mcrscrppx=` + encodeURIComponent(document.getElementById('registrationPassword').value)
@@ -1348,10 +1368,11 @@ class App extends React.Component {
                                                 + `&lastname=` + document.getElementById('registrationLastName').value
                                                 , {})
                                                 .then(res => {
+                                                  this.setState({ loading: false });
                                                   console.log(res);
                                                   console.log(res.data);
                                                   if (res.status == 200) {
-                                                    this.setState({ appCurrentScreen: 'Login' });
+                                                    this.setState({ appCurrentScreen: 'Login', registrationInvalidPasswords: false, registrationEmailInUse: false, registrationUsernameInUse: false, registrationFieldsIncomplete: false, registrationInvalidEmail: false });
                                                   }
                                                 })
                                             } else {
@@ -1360,8 +1381,12 @@ class App extends React.Component {
                                           } else {
                                             this.setState({ registrationInvalidPasswords: true })
                                           }
-                                        } else if (Number(res.data.count) > 0) {
-                                          this.setState({ registrationUsernameInUse: true })
+                                        } else if (res.data == 'usedUsername') {
+                                          this.setState({ registrationUsernameInUse: true, registrationEmailInUse: false })
+                                        } else if (res.data == 'usedEmail') {
+                                          this.setState({ registrationEmailInUse: true, registrationUsernameInUse: false });
+                                        } else if (res.data == 'usedUsernameEmail') {
+                                          this.setState({ registrationUsernameInUse: true, registrationEmailInUse: true });
                                         }
                                       })
                                   } else {
